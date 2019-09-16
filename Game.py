@@ -11,7 +11,7 @@ vel = 10
 class Board(object):
     def __init__(self):
         self.window = pygame.display.set_mode((screen_width, screen_height))
-        self.load()
+        self.clock = pygame.time.Clock()
         self.terminate = False
         self.keys = pygame.key.get_pressed()
         self.x_cord = 50
@@ -23,11 +23,13 @@ class Board(object):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.terminate = True
+            self.load()
+        self.clock.tick(60)
         pygame.quit()
 
     def load(self):
         self.background = pygame.image.load("Maze.png")
-        self.background = pygame.transform.scale(self.background, (screen_width, screen_height))
+        self.background = pygame.transform.smoothscale(self.background, (screen_width, screen_height))
         self.window.blit(self.background, (0, 0))
         pygame.display.update()
 
