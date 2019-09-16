@@ -23,14 +23,6 @@ class Board(object):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.terminate = True
-            if self.keys[pygame.K_LEFT]:
-                self.x_cord -= vel
-            if self.keys[pygame.K_RIGHT]:
-                self.x_cord += vel
-            if self.keys[pygame.K_UP]:
-                self.y_cord -= vel
-            if self.keys[pygame.K_DOWN]:
-                self.y_cord += vel
         pygame.quit()
 
     def load(self):
