@@ -1,6 +1,6 @@
-from main import *
+import pygame
 
 
-class Player:
-    def __init__(self):
-        self.game = game
+class Player(object):
+    def __init__(self, board):
+        self.board = board
