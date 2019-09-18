@@ -27,9 +27,9 @@ class Board(object):
         self.offset_height = self.cell_height//2
         ########Initialization###########
         self.cells()
-        self.user_events()
+        self.board_events()
 
-    def user_events(self):
+    def board_events(self):
         while not self.terminate:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -62,7 +62,7 @@ class Board(object):
 
     def draw_pops(self):
         for value in self.free_cells:
-            pygame.draw.circle(self.window, (255, 255, 0), (value[0], value[1]), 5)
+            pygame.draw.circle(self.window, (255, 215, 0), (value[0], value[1]), 5)
 
     def load(self):
         self.background = pygame.image.load("Maze.png")
