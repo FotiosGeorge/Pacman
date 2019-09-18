@@ -25,17 +25,19 @@ class Board(object):
         self.offset_width = self.cell_width//2
         self.cell_height = 24
         self.offset_height = self.cell_height//2
-        self.player = Player()
+        ########Initialization###########
+        self.cells()
         self.user_events()
 
     def user_events(self):
-        self.cells()
         while not self.terminate:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.terminate = True
+
             self.load()
-        self.clock.tick(60)
+            self.load_player()
+            self.clock.tick(60)
         pygame.quit()
 
     def draw_grid(self):
@@ -69,5 +71,8 @@ class Board(object):
         self.draw_grid()
         self.draw_pops()
         pygame.display.update()
+
+    def load_player(self):
+        self.player = Player(self)
 
 
