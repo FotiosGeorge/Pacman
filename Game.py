@@ -1,4 +1,7 @@
 import pygame
+from Grid import *
+from Player import *
+
 
 pygame.init()
 pygame.display.set_caption("Pacman")
@@ -8,26 +11,25 @@ screen_height = 744
 
 
 class Board(object):
-    def __init__(self, grid):
+    def __init__(self):
         self.Maze = grid
         self.window = pygame.display.set_mode((screen_width, screen_height))
         self.clock = pygame.time.Clock()
         self.terminate = False
-        self.keys = pygame.key.get_pressed()
         self.x_coord = 0
         self.y_coord = 0
         self.walls = []
         self.free_cells = []
-        self.central_cells = []
         self.enemy_spawn = []
         self.cell_width = 45
-        self.central_width = self.cell_width//2
+        self.offset_width = self.cell_width//2
         self.cell_height = 24
-        self.central_height = self.cell_height//2
+        self.offset_height = self.cell_height//2
+        self.player = Player()
         self.user_events()
 
     def user_events(self):
-        self.cells(self.Maze)
+        self.cells()
         while not self.terminate:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -42,15 +44,15 @@ class Board(object):
         for line in range(screen_height//24):
             pygame.draw.line(self.window, (107, 107, 107), (0, line*self.cell_height), (screen_width, line*self.cell_height))
 
-    def cells(self, grid):
-        for index1, row in enumerate(grid):
+    def cells(self):
+        for index1, row in enumerate(self.Maze):
             for index2, cell in enumerate(row):
                 if cell == 0:
-                    self.free_cells.append((self.x_coord, self.y_coord))
+                    self.free_cells.append((self.x_coord + self.offset_width, self.y_coord + self.offset_height))
                 elif cell == 1:
-                    self.walls.append((self.x_coord, self.y_coord))
+                    self.walls.append((self.x_coord + self.offset_width, self.y_coord + self.offset_height))
                 else:
-                    self.enemy_spawn.append((self.x_coord, self.y_coord))
+                    self.enemy_spawn.append((self.x_coord + self.offset_width, self.y_coord + self.offset_height))
                 self.x_coord += 45
                 if self.x_coord == 1260:
                     self.x_coord = 0
@@ -58,10 +60,7 @@ class Board(object):
 
     def draw_pops(self):
         for value in self.free_cells:
-            pygame.draw.circle(self.window, (255, 255, 0), (value[0] + self.central_width, value[1] + self.central_height), 5)
-            x_value = value[0] + self.central_width
-            y_value = value[1] + self.central_height
-            self.central_cells.append((x_value, y_value))
+            pygame.draw.circle(self.window, (255, 255, 0), (value[0], value[1]), 5)
 
     def load(self):
         self.background = pygame.image.load("Maze.png")
