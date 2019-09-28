@@ -4,14 +4,18 @@ import pygame
 class Player(object):
     def __init__(self, board):
         self.board = board
-        self.x = 630 - self.board.offset_width
-        self.y = 432 - self.board.offset_height
-        self.starting_pos = [self.x, self.y]
-        self.user_events()
+        self.x = 607
+        self.y = 420
+        self.pos = (self.x, self.y)
 
-    def user_events(self):
-        self.draw_start()
+    def movement(self, x, y):
+        self.x += x
+        self.y += y
+        self.pos = [self.x, self.y]
 
-    def draw_start(self):
-        pygame.draw.circle(self.board.window, (255, 255, 0), (self.starting_pos[0], self.starting_pos[1]), 8)
+    def draw(self):
+        pygame.draw.circle(self.board.window, (255, 255, 0), (self.pos[0], self.pos[1]), 8)
+
+    def update(self):
         pygame.display.update()
+
