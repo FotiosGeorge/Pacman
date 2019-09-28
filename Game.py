@@ -26,19 +26,44 @@ class Board(object):
         self.cell_height = 24
         self.offset_height = self.cell_height//2
         ########Initialization###########
+        self.load()
+        self.player = Player(self)
         self.cells()
-        self.board_events()
+        self.all_events()
 
-    def board_events(self):
+    def all_events(self):
         while not self.terminate:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.terminate = True
-
-            self.load()
-            self.load_player()
+            self.event()
+            self.update()
+            self.draw()
             self.clock.tick(60)
         pygame.quit()
+
+    def event(self):
+        pygame.time.delay(150)
+        keys = pygame.key.get_pressed()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.terminate = True
+        if keys[pygame.K_LEFT]:
+            self.player.movement(-self.cell_width, 0)
+        if keys[pygame.K_RIGHT]:
+            self.player.movement(self.cell_width, 0)
+        if keys[pygame.K_UP]:
+            self.player.movement(0, -self.cell_height)
+        if keys[pygame.K_DOWN]:
+            self.player.movement(0, self.cell_height)
+
+    def update(self):
+        self.player.update()
+
+    def draw(self):
+        self.window.fill((0, 0, 0))
+        self.window.blit(self.background, (0, 0))
+        self.draw_grid()
+        self.draw_pops()
+        self.player.draw()
+        pygame.display.update()
 
     def draw_grid(self):
         for line in range(screen_width//45):
@@ -68,11 +93,5 @@ class Board(object):
         self.background = pygame.image.load("Maze.png")
         self.background = pygame.transform.smoothscale(self.background, (screen_width, screen_height))
         self.window.blit(self.background, (0, 0))
-        self.draw_grid()
-        self.draw_pops()
         pygame.display.update()
-
-    def load_player(self):
-        self.player = Player(self)
-
 
