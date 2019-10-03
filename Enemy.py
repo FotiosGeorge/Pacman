@@ -41,38 +41,62 @@ class Enemy:
         self.pinky()
         self.clyde()
 
+    def moves(self, x, y, location, colour, direction):
+        if direction == 'L':
+            x -= self.board.cell_width
+            self.location_list[location] = (x, y)
+            pygame.draw.circle(self.board.window, (self.colour_list[colour]), (self.location_list[location]), 8)
+        if direction == 'R':
+            x += self.board.cell_width
+            self.location_list[location] = (x, y)
+            pygame.draw.circle(self.board.window, (self.colour_list[colour]), (self.location_list[location]), 8)
+        if direction == 'U':
+            y -= self.board.cell_height
+            self.location_list[location] = (x, y)
+            pygame.draw.circle(self.board.window, (self.colour_list[colour]), (self.location_list[location]), 8)
+        if direction == 'D':
+            y += self.board.cell_height
+            self.location_list[location] = (x, y)
+            pygame.draw.circle(self.board.window, (self.colour_list[colour]), (self.location_list[location]), 8)
+        pygame.display.update()
+
     def inky(self):
-        location = random.choice(self.actions)
+        direction = random.choice(self.actions)
         if self.timer >= 1 and self.spawn_count == 1:
             self.location_list[0] = (self.x_inky, self.y_inky)
             pygame.draw.circle(self.board.window, (self.colour_list[0]), (self.location_list[0]), 8)
             self.spawn_count += 1
-        else:
-            if location == 'L':
-                self.x_inky -= self.board.cell_width
-                self.location_list[0] = (self.x_inky, self.y_inky)
-                pygame.draw.circle(self.board.window, (self.colour_list[0]), (self.location_list[0]), 8)
-        pygame.display.update()
+        elif self.timer >= 1:
+            self.moves(self.x_inky, self.y_inky, 0, 0, direction)
 
     def blinky(self):
+        direction = random.choice(self.actions)
         if self.timer >= 30 and self.spawn_count == 2:
-            self.location_list[0] = (607, 276)
-            pygame.draw.circle(self.board.window, (self.colour_list[0]), (self.location_list[0]), 8)
+            self.location_list[1] = (607, 276)
+            pygame.draw.circle(self.board.window, (self.colour_list[1]), (self.location_list[1]), 8)
             self.spawn_count += 1
+        elif self.timer >= 30:
+            self.moves(self.x_blinky, self.y_blinky, 1, 1, direction)
         pygame.display.update()
 
     def pinky(self):
+        direction = random.choice(self.actions)
         if self.timer >= 60 and self.spawn_count == 3:
             self.location_list[0] = (607, 276)
             pygame.draw.circle(self.board.window, (self.colour_list[0]), (self.location_list[0]), 8)
             self.spawn_count += 1
+        elif self.timer >= 60:
+            self.moves(self.x_pinky, self.y_pinky, 2, 2, direction)
         pygame.display.update()
 
     def clyde(self):
+        direction = random.choice(self.actions)
         if self.timer >= 120 and self.spawn_count == 4:
             self.location_list[0] = (607, 276)
             pygame.draw.circle(self.board.window, (self.colour_list[0]), (self.location_list[0]), 8)
             self.spawn_count += 1
+        elif self.timer >= 120:
+            self.moves(self.x_clyde, self.y_clyde, 3, 3, direction)
         pygame.display.update()
 
 
