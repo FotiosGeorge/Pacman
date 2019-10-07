@@ -1,6 +1,7 @@
 import pygame
 from Grid import *
 from Player import *
+from Enemy import *
 
 pygame.init()
 pygame.display.set_caption("Pacman")
@@ -27,11 +28,13 @@ class Board(object):
         self.offset_height = self.cell_height // 2
         ########Initialization###########
         self.load()
-        self.player = Player(self)
         self.cells()
         self.all_events()
 
     def all_events(self):
+        self.player = Player(self)
+        self.inky = Enemy(self, (178, 225, 255), 'L')
+        self.blinky = Enemy(self, (178, 225, 120), 'R')
         while not self.terminate:
             self.event()
             self.update()
@@ -75,6 +78,10 @@ class Board(object):
         self.draw_grid()
         self.draw_pops()
         self.player.draw()
+        self.inky.changeLocation(random.choice(['L', 'U', 'D', 'R']))
+        self.inky.moves()
+        self.blinky.changeLocation(random.choice(['L', 'U', 'D', 'R']))
+        self.blinky.moves()
         pygame.display.update()
 
     def draw_grid(self):
