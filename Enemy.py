@@ -1,5 +1,4 @@
 import pygame
-import random
 
 
 class Enemy:
@@ -26,4 +25,7 @@ class Enemy:
         if self.direction == 'D':
             self.y += self.board.cell_height
             pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
+
+    def update(self):
+        pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
         pygame.display.update()
