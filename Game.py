@@ -1,4 +1,5 @@
 import pygame
+from pygame.locals import *
 from Grid import *
 from Player import *
 from Enemy import *
@@ -14,7 +15,7 @@ screen_height = 744
 class Board(object):
     def __init__(self):
         self.Maze = grid
-        self.window = pygame.display.set_mode((screen_width, screen_height))
+        self.window = pygame.display.set_mode((screen_width, screen_height), FULLSCREEN)
         self.clock = pygame.time.Clock()
         self.terminate = False
         self.x_coord = 0
@@ -45,11 +46,18 @@ class Board(object):
             self.clock.tick(60)
         pygame.quit()
 
+#-----------------------------------------------Menu_State-----------------------------------------------#
+
+#-----------------------------------------------Playing_State-----------------------------------------------#
+
     def event(self):
         pygame.time.delay(150)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.terminate = True
+            if event.type == pygame.KEYDOWN:
+                if event.key == K_ESCAPE:
+                    self.terminate = True
         self.player_collision()
 
     def update(self):
@@ -116,22 +124,22 @@ class Board(object):
             for tup in self.free_cells:
                 if (tup[0] == self.player.x - self.cell_width) and (tup[1] == self.player.y):
                     self.player.movement(-self.cell_width, 0)
-                    break
+                    return None
         if keys[pygame.K_RIGHT]:
             for tup in self.free_cells:
                 if (tup[0] == self.player.x + self.cell_width) and (tup[1] == self.player.y):
                     self.player.movement(self.cell_width, 0)
-                    break
+                    return None
         if keys[pygame.K_UP]:
             for tup in self.free_cells:
                 if (tup[0] == self.player.x) and (tup[1] == self.player.y - self.cell_height):
                     self.player.movement(0, -self.cell_height)
-                    break
+                    return None
         if keys[pygame.K_DOWN]:
             for tup in self.free_cells:
                 if (tup[0] == self.player.x) and (tup[1] == self.player.y + self.cell_height):
                     self.player.movement(0, self.cell_height)
-                    break
+                    return None
 
     def enemy_collision(self, direction, enemy):
         if direction == "L":
