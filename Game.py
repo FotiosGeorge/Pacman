@@ -1,4 +1,5 @@
 import pygame
+import sys
 from pygame.locals import *
 from Grid import *
 from Player import *
@@ -11,11 +12,108 @@ pygame.display.set_caption("Pacman")
 screen_width = 1260
 screen_height = 744
 
+#-----------------------------------------------Menu_State-----------------------------------------------#
+
+
+class Menu(object):
+    def __init__(self):
+        self.window = pygame.display.set_mode((screen_width, screen_height), FULLSCREEN)
+        self.clock = pygame.time.Clock()
+        self.terminate = False
+        self.run = True
+        self.load()
+        self.button_list = [(155, 152), (155, 272), (155, 392), (155, 512), (155, 632)]
+        self.draw_buttons()
+        self.events()
+
+    def __del__(self):
+        print("You have exited main menu")
+
+    def events(self):
+        while not self.terminate and self.run:
+            self.menu_event()
+            self.menu_draw()
+            self.menu_update()
+            self.clock.tick(60)
+        if self.terminate:
+            pygame.quit()
+
+    def menu_event(self):
+        pygame.time.delay(60)
+        for event in pygame.event.get():
+            mouse_pos = pygame.mouse.get_pos()
+
+            if event.type == pygame.MOUSEMOTION:
+                if self.button_collisions(mouse_pos):
+                    self.hover()
+                    self.button_text()
+                else:
+                    self.draw_buttons()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.button_collisions(mouse_pos) and self.button_count == 0:
+                    self.run = False
+                    board = Board(self.window)
+                elif self.button_collisions(mouse_pos) and self.button_count == 4:
+                    self.terminate = True
+
+            if event.type == pygame.QUIT or (self.terminate == True):
+                self.terminate = True
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == K_ESCAPE:
+                    self.terminate = True
+
+    def button_collisions(self, mouse_pos):
+        self.button_count = -1
+        for pos in self.button_list:
+            self.button_count += 1
+            if (mouse_pos[0] > pos[0]) and (mouse_pos[0] < (pos[0] + 200)):
+                if (mouse_pos[1] > pos[1]) and (mouse_pos[1] < (pos[1] + 100)):
+                    return True
+
+    def menu_draw(self):
+        None
+
+    def menu_update(self):
+        pygame.display.update()
+
+    def button_text(self):
+        display_list = ["Single-player", "Local-Multiplayer", "Leaderboard", "Settings", "Quit"]
+        height = 8
+        for x in display_list:
+            button_font = pygame.font.Font(None, 33)
+            button_surf = button_font.render(x, 1, (255, 255, 255))
+            button_pos = [3.7 * 45, height * 24]
+            height += 5
+            self.window.blit(button_surf, button_pos)
+
+    def draw_buttons(self):
+        y = 154
+        for x in range(0, 5):
+            pygame.draw.rect(self.window, (0, 0, 0), (157, y, 204, 104), 0)
+            pygame.draw.rect(self.window, (255, 205, 0), (155, y-2, 200, 100), 0)
+            y += 120
+        self.button_text()
+        pygame.display.update()
+
+    def hover(self):
+        for index, pos in enumerate(self.button_list):
+            if self.button_count == index:
+                pygame.draw.rect(self.window, (178, 143, 0), (pos[0], pos[1], 200, 100), 0)
+                pygame.display.update()
+
+    def load(self):
+        self.background = pygame.image.load("menuscreen.jpg")
+        self.background = pygame.transform.smoothscale(self.background, (screen_width, screen_height))
+        self.window.blit(self.background, (0, 0))
+        pygame.display.update()
+
 
 class Board(object):
-    def __init__(self):
+    def __init__(self, window):
         self.Maze = grid
-        self.window = pygame.display.set_mode((screen_width, screen_height), FULLSCREEN)
+        self.window = window
         self.clock = pygame.time.Clock()
         self.terminate = False
         self.x_coord = 0
@@ -36,47 +134,49 @@ class Board(object):
         self.blinky = Enemy(self, (178, 225, 120), 'R')
         self.pinky = Enemy(self, (93, 5, 120), 'L')
         self.clyde = Enemy(self, (154, 253, 78), 'R')
-        self.all_events()
+        self.enemy = [self.inky, self.blinky, self.pinky, self.clyde]
+        self.events()
 
-    def all_events(self):
+    def events(self):
         while not self.terminate:
-            self.event()
-            self.draw()
-            self.update()
+            self.play_event()
+            self.play_draw()
+            self.play_update()
             self.clock.tick(60)
         pygame.quit()
-
-#-----------------------------------------------Menu_State-----------------------------------------------#
+        sys.exit()
 
 #-----------------------------------------------Playing_State-----------------------------------------------#
 
-    def event(self):
-        pygame.time.delay(150)
+    def play_event(self):
+        if self.player.player_lives == 0:
+            self.terminate = True
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT or (self.terminate == True):
                 self.terminate = True
             if event.type == pygame.KEYDOWN:
                 if event.key == K_ESCAPE:
                     self.terminate = True
         self.player_collision()
 
-    def update(self):
+    def play_update(self):
         self.player.update()
         self.inky.update()
         self.blinky.update()
         self.pinky.update()
         self.clyde.update()
+        pygame.display.update()
 
-    def draw(self):
+    def play_draw(self):
         self.window.fill((0, 0, 0))
         self.window.blit(self.background, (0, 0))
-        self.draw_grid()
+        """self.draw_grid()"""
         self.draw_pops()
         self.player.draw()
         self.enemy_moves()
-        pygame.display.update()
 
     def enemy_moves(self):
+        pygame.time.delay(150)
         self.inky.changeLocation(random.choice(['L', 'U', 'D', 'R']))
         self.enemy_collision(self.inky.direction, self.inky)
         self.blinky.changeLocation(random.choice(['L', 'U', 'D', 'R']))
@@ -85,15 +185,14 @@ class Board(object):
         self.enemy_collision(self.pinky.direction, self.pinky)
         self.clyde.changeLocation(random.choice(['L', 'U', 'D', 'R']))
         self.enemy_collision(self.clyde.direction, self.clyde)
-        pygame.display.update()
 
-    def draw_grid(self):
+    """def draw_grid(self):
         for line in range(screen_width // 45):
             pygame.draw.line(self.window, (107, 107, 107), (line * self.cell_width, 0),
                              (line * self.cell_width, screen_height))
         for line in range(screen_height // 24):
             pygame.draw.line(self.window, (107, 107, 107), (0, line * self.cell_height),
-                             (screen_width, line * self.cell_height))
+                             (screen_width, line * self.cell_height))"""
 
     def cells(self):
         for index1, row in enumerate(self.Maze):
