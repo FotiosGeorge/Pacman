@@ -50,6 +50,8 @@ class Player(object):
         for tup2 in self.board.enemy:
             if (tup2.x == self.x) and (tup2.y == self.y):
                 self.player_lives -= 1
+                self.board.player.x = 607
+                self.board.player.y = 420
                 break
         self.lives_system()
 

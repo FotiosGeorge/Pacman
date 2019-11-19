@@ -39,7 +39,7 @@ class Menu(object):
             pygame.quit()
 
     def menu_event(self):
-        pygame.time.delay(60)
+        pygame.time.delay(30)
         for event in pygame.event.get():
             mouse_pos = pygame.mouse.get_pos()
 
@@ -95,7 +95,6 @@ class Menu(object):
             pygame.draw.rect(self.window, (255, 205, 0), (155, y-2, 200, 100), 0)
             y += 120
         self.button_text()
-        pygame.display.update()
 
     def hover(self):
         for index, pos in enumerate(self.button_list):
@@ -108,6 +107,8 @@ class Menu(object):
         self.background = pygame.transform.smoothscale(self.background, (screen_width, screen_height))
         self.window.blit(self.background, (0, 0))
         pygame.display.update()
+
+#-----------------------------------------------Playing_State-----------------------------------------------#
 
 
 class Board(object):
@@ -145,8 +146,6 @@ class Board(object):
             self.clock.tick(60)
         pygame.quit()
         sys.exit()
-
-#-----------------------------------------------Playing_State-----------------------------------------------#
 
     def play_event(self):
         if self.player.player_lives == 0:
