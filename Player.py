@@ -8,6 +8,7 @@ class Player(object):
         self.y = 420
         self.pos = [(self.x, self.y)]
         self.score = 0
+        self.player_lives = 3
 
     def movement(self, x, y):
         self.x += x
@@ -22,12 +23,21 @@ class Player(object):
         score_surf = score_font.render(str(self.score), 1, (255, 255, 255))
         score_pos = [3 * self.board.cell_width, 13 * self.board.cell_height]
         self.board.window.blit(score_surf, score_pos)
-        pygame.display.update()
+
+    def lives_system(self):
+        lives_font = pygame.font.Font(None, 50)
+        lives_surf = lives_font.render(str(self.player_lives), 1, (255, 255, 255))
+        lives_pos = [3 * self.board.cell_width, 17 * self.board.cell_height]
+        self.board.window.blit(lives_surf, lives_pos)
 
     def update(self):
         score_font = pygame.font.Font(None, 50)
         score_surf = score_font.render("Score", 1, (255, 255, 255))
         score_pos = [2 * self.board.cell_width, 11.5 * self.board.cell_height]
+        lives_font = pygame.font.Font(None, 50)
+        lives_surf = lives_font.render("Lives", 1, (255, 255, 255))
+        lives_pos = [2 * self.board.cell_width, 15.5 * self.board.cell_height]
+        self.board.window.blit(lives_surf, lives_pos)
         self.board.window.blit(score_surf, score_pos)
 
         for tup2 in self.board.dots:
@@ -37,5 +47,11 @@ class Player(object):
                 self.score_system()
                 break
         self.score_system()
-        pygame.display.update()
+        for tup2 in self.board.enemy:
+            if (tup2.x == self.x) and (tup2.y == self.y):
+                self.player_lives -= 1
+                break
+        self.lives_system()
+
+
 
