@@ -17,7 +17,7 @@ screen_height = 744
 
 class Menu(object):
     def __init__(self):
-        self.window = pygame.display.set_mode((screen_width, screen_height), FULLSCREEN)
+        self.window = pygame.display.set_mode((screen_width, screen_height))
         self.clock = pygame.time.Clock()
         self.terminate = False
         self.run = True
@@ -121,6 +121,7 @@ class Board(object):
         self.y_coord = 0
         self.walls = []
         self.free_cells = []
+        self.free_pos = []
         self.enemy_spawn = []
         self.dots = []
         self.cell_width = 45
@@ -144,6 +145,7 @@ class Board(object):
             self.play_draw()
             self.play_update()
             self.clock.tick(60)
+        self.blinky.create_matrix()
         pygame.quit()
         sys.exit()
 
@@ -169,7 +171,7 @@ class Board(object):
     def play_draw(self):
         self.window.fill((0, 0, 0))
         self.window.blit(self.background, (0, 0))
-        """self.draw_grid()"""
+        self.draw_grid()
         self.draw_pops()
         self.player.draw()
         self.enemy_moves()
@@ -185,18 +187,19 @@ class Board(object):
         self.clyde.changeLocation(random.choice(['L', 'U', 'D', 'R']))
         self.enemy_collision(self.clyde.direction, self.clyde)
 
-    """def draw_grid(self):
+    def draw_grid(self):
         for line in range(screen_width // 45):
             pygame.draw.line(self.window, (107, 107, 107), (line * self.cell_width, 0),
                              (line * self.cell_width, screen_height))
         for line in range(screen_height // 24):
             pygame.draw.line(self.window, (107, 107, 107), (0, line * self.cell_height),
-                             (screen_width, line * self.cell_height))"""
+                             (screen_width, line * self.cell_height))
 
     def cells(self):
-        for index1, row in enumerate(self.Maze):
-            for index2, cell in enumerate(row):
+        for y, row in enumerate(self.Maze):
+            for x, cell in enumerate(row):
                 if cell == 0:
+                    self.free_pos.append((x, y))
                     self.free_cells.append((self.x_coord + self.offset_width, self.y_coord + self.offset_height))
                     self.dots.append((self.x_coord + self.offset_width, self.y_coord + self.offset_height))
                 elif cell == 1:
