@@ -1,13 +1,15 @@
 import pygame
+import time
 
 
 class Enemy:
-    def __init__(self, board, colour, direction):
+    def __init__(self, board, colour, direction, spawned):
         self.board = board
         self.x = 607
-        self.y = 276
+        self.y = 324
         self.direction = direction
         self.colour = colour
+        self.spawned = spawned
         self.intersections = []
         self.matrix = []
         self.matrix_equivalent = {}
@@ -16,16 +18,16 @@ class Enemy:
         self.direction = direction
 
     def moves(self):
-        if self.direction == 'L':
+        if self.direction == 'L' and self.spawned is True:
             self.x -= self.board.cell_width
             pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
-        if self.direction == 'R':
+        if self.direction == 'R' and self.spawned is True:
             self.x += self.board.cell_width
             pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
-        if self.direction == 'U':
+        if self.direction == 'U' and self.spawned is True:
             self.y -= self.board.cell_height
             pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
-        if self.direction == 'D':
+        if self.direction == 'D' and self.spawned is True:
             self.y += self.board.cell_height
             pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
 

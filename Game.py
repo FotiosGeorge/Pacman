@@ -4,41 +4,31 @@ from pygame.locals import *
 from Grid import *
 from Player import *
 from Enemy import *
+import time
 import random
 
 pygame.init()
 pygame.display.set_caption("Pacman")
-
 screen_width = 1260
 screen_height = 744
+window = pygame.display.set_mode((screen_width, screen_height))
 
 #-----------------------------------------------Menu_State-----------------------------------------------#
 
 
 class Menu(object):
-    def __init__(self):
-        self.window = pygame.display.set_mode((screen_width, screen_height))
+    def __init__(self, terminate):
+        self.window = window
+        self.state = "Menu"
+        self.terminate = terminate
         self.clock = pygame.time.Clock()
-        self.terminate = False
-        self.run = True
-        self.load()
         self.button_list = [(155, 152), (155, 272), (155, 392), (155, 512), (155, 632)]
-        self.draw_buttons()
-        self.events()
 
     def __del__(self):
         print("You have exited main menu")
 
-    def events(self):
-        while not self.terminate and self.run:
-            self.menu_event()
-            self.menu_draw()
-            self.menu_update()
-            self.clock.tick(60)
-        if self.terminate:
-            pygame.quit()
-
     def menu_event(self):
+        self.clock.tick(60)
         pygame.time.delay(30)
         for event in pygame.event.get():
             mouse_pos = pygame.mouse.get_pos()
@@ -47,13 +37,14 @@ class Menu(object):
                 if self.button_collisions(mouse_pos):
                     self.hover()
                     self.button_text()
+                    pygame.display.update()
                 else:
                     self.draw_buttons()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.button_collisions(mouse_pos) and self.button_count == 0:
-                    self.run = False
-                    board = Board(self.window)
+                    self.state = "Play"
+                    return self.state
                 elif self.button_collisions(mouse_pos) and self.button_count == 4:
                     self.terminate = True
 
@@ -100,23 +91,23 @@ class Menu(object):
         for index, pos in enumerate(self.button_list):
             if self.button_count == index:
                 pygame.draw.rect(self.window, (178, 143, 0), (pos[0], pos[1], 200, 100), 0)
-                pygame.display.update()
 
     def load(self):
         self.background = pygame.image.load("menuscreen.jpg")
         self.background = pygame.transform.smoothscale(self.background, (screen_width, screen_height))
         self.window.blit(self.background, (0, 0))
+        self.draw_buttons()
         pygame.display.update()
 
 #-----------------------------------------------Playing_State-----------------------------------------------#
 
 
 class Board(object):
-    def __init__(self, window):
+    def __init__(self, terminate):
         self.Maze = grid
         self.window = window
         self.clock = pygame.time.Clock()
-        self.terminate = False
+        self.terminate = terminate
         self.x_coord = 0
         self.y_coord = 0
         self.walls = []
@@ -128,28 +119,17 @@ class Board(object):
         self.offset_width = self.cell_width // 2
         self.cell_height = 24
         self.offset_height = self.cell_height // 2
+        self.base_time = time.time()
         ########Initialization###########
-        self.load()
-        self.cells()
         self.player = Player(self)
-        self.inky = Enemy(self, (178, 225, 255), 'L')
-        self.blinky = Enemy(self, (178, 225, 120), 'R')
-        self.pinky = Enemy(self, (93, 5, 120), 'L')
-        self.clyde = Enemy(self, (154, 253, 78), 'R')
+        self.inky = Enemy(self, (178, 225, 255), 'L', False)
+        self.blinky = Enemy(self, (178, 225, 120), 'R', False)
+        self.pinky = Enemy(self, (93, 5, 120), 'L', False)
+        self.clyde = Enemy(self, (154, 253, 78), 'R', False)
         self.enemy = [self.inky, self.blinky, self.pinky, self.clyde]
-        self.events()
-
-    def events(self):
-        while not self.terminate:
-            self.play_event()
-            self.play_draw()
-            self.play_update()
-            self.clock.tick(60)
-        self.blinky.create_matrix()
-        pygame.quit()
-        sys.exit()
 
     def play_event(self):
+        self.clock.tick(60)
         if self.player.player_lives == 0:
             self.terminate = True
         for event in pygame.event.get():
@@ -162,6 +142,7 @@ class Board(object):
 
     def play_update(self):
         self.player.update()
+        self.check_timer()
         self.inky.update()
         self.blinky.update()
         self.pinky.update()
@@ -174,18 +155,24 @@ class Board(object):
         self.draw_grid()
         self.draw_pops()
         self.player.draw()
+        if self.check_timer():
+            for enemy in self.enemy:
+                if enemy.spawned is False:
+                    enemy.spawned = True
+                    enemy.y = 276
+                    break
         self.enemy_moves()
 
     def enemy_moves(self):
         pygame.time.delay(150)
-        self.inky.changeLocation(random.choice(['L', 'U', 'D', 'R']))
-        self.enemy_collision(self.inky.direction, self.inky)
-        self.blinky.changeLocation(random.choice(['L', 'U', 'D', 'R']))
-        self.enemy_collision(self.blinky.direction, self.blinky)
-        self.pinky.changeLocation(random.choice(['L', 'U', 'D', 'R']))
-        self.enemy_collision(self.pinky.direction, self.pinky)
-        self.clyde.changeLocation(random.choice(['L', 'U', 'D', 'R']))
-        self.enemy_collision(self.clyde.direction, self.clyde)
+        for enemy in self.enemy:
+            enemy.changeLocation(random.choice(['L', 'U', 'D', 'R']))
+            self.enemy_collision(enemy.direction, enemy)
+
+    def check_timer(self):
+        spawn_time = time.time()
+        final_time = int(spawn_time - self.base_time) % 10
+        return final_time == 0
 
     def draw_grid(self):
         for line in range(screen_width // 45):
@@ -268,4 +255,5 @@ class Board(object):
         self.background = pygame.image.load("Maze.png")
         self.background = pygame.transform.smoothscale(self.background, (screen_width, screen_height))
         self.window.blit(self.background, (0, 0))
+        self.cells()
         pygame.display.update()
