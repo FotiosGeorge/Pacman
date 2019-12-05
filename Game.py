@@ -11,7 +11,7 @@ pygame.init()
 pygame.display.set_caption("Pacman")
 screen_width = 1260
 screen_height = 744
-window = pygame.display.set_mode((screen_width, screen_height))
+window = pygame.display.set_mode((screen_width, screen_height), FULLSCREEN)
 
 #-----------------------------------------------Menu_State-----------------------------------------------#
 
@@ -108,6 +108,7 @@ class Board(object):
         self.window = window
         self.clock = pygame.time.Clock()
         self.terminate = terminate
+        self.spawn_count = 0
         self.x_coord = 0
         self.y_coord = 0
         self.walls = []
@@ -133,7 +134,7 @@ class Board(object):
         if self.player.player_lives == 0:
             self.terminate = True
         for event in pygame.event.get():
-            if event.type == pygame.QUIT or (self.terminate == True):
+            if event.type == pygame.QUIT or (self.terminate is True):
                 self.terminate = True
             if event.type == pygame.KEYDOWN:
                 if event.key == K_ESCAPE:
@@ -152,7 +153,7 @@ class Board(object):
     def play_draw(self):
         self.window.fill((0, 0, 0))
         self.window.blit(self.background, (0, 0))
-        self.draw_grid()
+        """self.draw_grid()"""
         self.draw_pops()
         self.player.draw()
         if self.check_timer():
@@ -172,7 +173,10 @@ class Board(object):
     def check_timer(self):
         spawn_time = time.time()
         final_time = int(spawn_time - self.base_time) % 10
-        return final_time == 0
+        self.spawn_count += 1
+        if self.spawn_count % 5 == 0:
+            print(self.spawn_count)
+            return final_time == 0
 
     def draw_grid(self):
         for line in range(screen_width // 45):

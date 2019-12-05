@@ -11,6 +11,8 @@ class Enemy:
         self.colour = colour
         self.spawned = spawned
         self.intersections = []
+        self.x_intersection = []
+        self.y_intersection = []
         self.matrix = []
         self.matrix_equivalent = {}
 
@@ -58,22 +60,27 @@ class Enemy:
             for y in range(0, len(self.intersections)):
                 self.matrix[x].append(float("inf"))
 
+        for intersection in self.intersections:
+            x, y = intersection
+            if x not in self.x_intersection:
+                if y not in self.y_intersection:
+                    self.x_intersection.append(x)
+                    self.y_intersection.append(y)
+
         for index, value in enumerate(self.intersections):
-            found = False
             for index2, value2 in enumerate(self.intersections):
-                if value != value2 and found is False:
+                if value != value2:
                     if value[0] == value2[0]:
-                        found = True
                         weight = abs(value2[1] - value[1])
                         self.matrix[index][index2] = weight
                     if value[1] == value2[1]:
-                        found = True
                         weight = abs(value2[0] - value[0])
                         self.matrix[index][index2] = weight
         print(self.matrix)
+        print(self.intersections)
+        print(self.x_intersection)
+        print(self.y_intersection)
         print(self.matrix_equivalent)
-
-
 
     def neighbours_location(self):
         None
