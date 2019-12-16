@@ -11,7 +11,7 @@ pygame.init()
 pygame.display.set_caption("Pacman")
 screen_width = 1260
 screen_height = 744
-window = pygame.display.set_mode((screen_width, screen_height), FULLSCREEN)
+window = pygame.display.set_mode((screen_width, screen_height))
 
 #-----------------------------------------------Menu_State-----------------------------------------------#
 
@@ -112,6 +112,7 @@ class Board(object):
         self.x_coord = 0
         self.y_coord = 0
         self.walls = []
+        self.walls_pos = []
         self.free_cells = []
         self.free_pos = []
         self.enemy_spawn = []
@@ -175,7 +176,6 @@ class Board(object):
         final_time = int(spawn_time - self.base_time) % 10
         self.spawn_count += 1
         if self.spawn_count % 5 == 0:
-            print(self.spawn_count)
             return final_time == 0
 
     def draw_grid(self):
@@ -194,6 +194,7 @@ class Board(object):
                     self.free_cells.append((self.x_coord + self.offset_width, self.y_coord + self.offset_height))
                     self.dots.append((self.x_coord + self.offset_width, self.y_coord + self.offset_height))
                 elif cell == 1:
+                    self.walls_pos.append((x, y))
                     self.walls.append((self.x_coord + self.offset_width, self.y_coord + self.offset_height))
                 else:
                     self.enemy_spawn.append((self.x_coord + self.offset_width, self.y_coord + self.offset_height))

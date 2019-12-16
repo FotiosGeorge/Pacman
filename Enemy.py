@@ -11,8 +11,10 @@ class Enemy:
         self.colour = colour
         self.spawned = spawned
         self.intersections = []
-        self.x_intersection = []
-        self.y_intersection = []
+        self.two_exits = []
+        self.three_y_exits = []
+        self.three_x_exits = []
+        self.four_exits = []
         self.matrix = []
         self.matrix_equivalent = {}
 
@@ -41,6 +43,8 @@ class Enemy:
 
     def create_matrix(self):
 
+        self.nearest_neighbour()
+
         for value in self.board.free_pos:
             x1 = (value[0] + 1, value[1])
             x2 = (value[0] - 1, value[1])
@@ -60,36 +64,62 @@ class Enemy:
             for y in range(0, len(self.intersections)):
                 self.matrix[x].append(float("inf"))
 
-        for intersection in self.intersections:
-            x, y = intersection
-            if x not in self.x_intersection:
-                if y not in self.y_intersection:
-                    self.x_intersection.append(x)
-                    self.y_intersection.append(y)
-
         for index, value in enumerate(self.intersections):
+            x_count = 0
+            y_count = 0
+            weight_y_list = []
+            weight_x_list = []
             for index2, value2 in enumerate(self.intersections):
                 if value != value2:
                     if value[0] == value2[0]:
-                        weight = abs(value2[1] - value[1])
-                        self.matrix[index][index2] = weight
+                        wall_count = 0
+                        for index3, value3 in enumerate(self.board.walls_pos):
+                            if value3[0] == value[0]:
+                                if (value2[1] >= value3[1] >= value[1]) or (value[1] >= value3[1] >= value2[1]):
+                                    wall_count += 1
+                        if wall_count == 0:
+                            weight = abs(value2[1] - value[1])
+                            weight_y_list.append(weight)
+                            #self.matrix[index][index2] = weight
                     if value[1] == value2[1]:
-                        weight = abs(value2[0] - value[0])
-                        self.matrix[index][index2] = weight
+                        wall_count = 0
+                        for index3, value3 in enumerate(self.board.walls_pos):
+                            if value3[1] == value[1]:
+                                if (value2[0] >= value3[0] >= value[0]) or (value[0] >= value3[0] >= value2[0]):
+                                    wall_count += 1
+                        if wall_count == 0:
+                            weight = abs(value2[0] - value[0])
+                            weight_x_list.append(weight)
+                            #self.matrix[index][index2] = weight
+            weight_y_list.sort()
+            weight_x_list.sort()
+
+            if value in self.two_exits:
+                None
+            if value in self.three_y_exits:
+                None
+            if value in self.three_x_exits:
+                None
+            if value in self.four_exits:
+                None
+
         print(self.matrix)
         print(self.intersections)
-        print(self.x_intersection)
-        print(self.y_intersection)
         print(self.matrix_equivalent)
 
-    def neighbours_location(self):
-        None
-
-    def path_finding(self):
-        None
-
-    def matrix_values(self):
-        None
-
-    def board_location(self):
-        None
+    def nearest_neighbour(self):
+        for value in self.intersections:
+            a = (value[0] + 1, value[1]) #right
+            b = (value[0] - 1, value[1]) #left
+            c = (value[0], value[1] + 1) #down
+            d = (value[0], value[1] - 1) #up
+            if ((a and not b) or (not a and b)) in self.board.free_pos:
+                if ((c and not d) or (not c and d)) in self.board.free_pos:
+                    self.two_exits.append(value)
+                if (c and d) in self.board.free_pos:
+                    self.three_y_exits.append(value)
+            if ((c and not d) or (not c and d)) in self.board.free_pos:
+                if (a and b) in self.board.free_pos:
+                    self.three_x_exits.append(value)
+            if ((a and b) and (c and d)) in self.board.free_pos:
+                self.four_exits.append(value)
