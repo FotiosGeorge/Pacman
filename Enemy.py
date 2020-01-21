@@ -43,8 +43,6 @@ class Enemy:
 
     def create_matrix(self):
 
-        self.nearest_neighbour()
-
         for value in self.board.free_pos:
             x1 = (value[0] + 1, value[1])
             x2 = (value[0] - 1, value[1])
@@ -54,6 +52,8 @@ class Enemy:
                 if y1 in self.board.free_pos or y2 in self.board.free_pos:
                     if value not in self.intersections:
                         self.intersections.append((value[0], value[1]))
+
+        self.nearest_neighbour()
 
         index = 0
         for value in self.intersections:
@@ -155,9 +155,6 @@ class Enemy:
                     weight_y_list.pop(min_index)
                     y_count += 1
 
-        print(self.matrix)
-        print(self.intersections)
-        print(self.matrix_equivalent)
 
     def nearest_neighbour(self):
         for value in self.intersections:
@@ -165,13 +162,17 @@ class Enemy:
             b = (value[0] - 1, value[1]) #left
             c = (value[0], value[1] + 1) #down
             d = (value[0], value[1] - 1) #up
-            if ((a and not b) or (not a and b)) in self.board.free_pos:
-                if ((c and not d) or (not c and d)) in self.board.free_pos:
+            if (bool(a in self.board.free_pos)) ^ (bool(b in self.board.free_pos)):
+                if (bool(c in self.board.free_pos)) ^ (bool(d in self.board.free_pos)):
                     self.two_exits.append(value)
-                if (c and d) in self.board.free_pos:
+                if bool(c in self.board.free_pos) == bool(d in self.board.free_pos):
                     self.three_y_exits.append(value)
-            if ((c and not d) or (not c and d)) in self.board.free_pos:
-                if (a and b) in self.board.free_pos:
+            if (bool(c in self.board.free_pos)) ^ (bool(d in self.board.free_pos)):
+                if bool(a in self.board.free_pos) == bool(b in self.board.free_pos):
                     self.three_x_exits.append(value)
-            if ((a and b) and (c and d)) in self.board.free_pos:
+            if bool(a in self.board.free_pos) == bool(b in self.board.free_pos) and bool(c in self.board.free_pos) == bool(d in self.board.free_pos):
                 self.four_exits.append(value)
+        print(self.two_exits)
+        print(self.three_y_exits)
+        print(self.three_x_exits)
+        print(self.four_exits)
