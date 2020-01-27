@@ -124,6 +124,7 @@ class Board(object):
         self.base_time = time.time()
         ########Initialization###########
         self.player = Player(self)
+        self.intersections = []
         self.inky = Enemy(self, (178, 225, 255), 'L', False)
         self.blinky = Enemy(self, (178, 225, 120), 'R', False)
         self.pinky = Enemy(self, (93, 5, 120), 'L', False)
@@ -202,6 +203,15 @@ class Board(object):
                 if self.x_coord == 1260:
                     self.x_coord = 0
             self.y_coord += 24
+        for value in self.free_cells:
+            x1 = (value[0] + 45, value[1])
+            x2 = (value[0] - 45, value[1])
+            y1 = (value[0], value[1] + 24)
+            y2 = (value[0], value[1] - 24)
+            if x1 in self.free_cells or x2 in self.free_cells:
+                if y1 in self.free_cells or y2 in self.free_cells:
+                    if value not in self.intersections:
+                        self.intersections.append((value[0], value[1]))
 
     def draw_pops(self):
         for value in self.dots:

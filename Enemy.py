@@ -42,7 +42,6 @@ class Enemy:
         "---------------------------------------------------------------------"
 
     def create_matrix(self):
-
         for value in self.board.free_pos:
             x1 = (value[0] + 1, value[1])
             x2 = (value[0] - 1, value[1])
@@ -95,66 +94,65 @@ class Enemy:
                             cords_x_list.append(index2)
 
             if value in self.two_exits:
-                while x_count < 1:
-                    min_weight = min(weight_x_list)
-                    min_index = weight_x_list.index(min_weight)
-                    index_value = cords_x_list[min_index]
-                    self.matrix[index][index_value] = min_weight
-                    weight_x_list.pop(min_index)
+                while x_count < 1 and y_count < 1:
+                    min_x_weight = min(weight_x_list)
+                    min_x_index = weight_x_list.index(min_x_weight)
+                    index_x_value = cords_x_list[min_x_index]
+                    min_y_weight = min(weight_y_list)
+                    min_y_index = weight_y_list.index(min_y_weight)
+                    index_y_value = cords_y_list[min_y_index]
+                    self.matrix[index][index_x_value] = min_x_weight
+                    self.matrix[index][index_y_value] = min_y_weight
+                    weight_x_list[min_x_index] = 100
+                    weight_y_list[min_y_index] = 100
                     x_count += 1
-                while y_count < 1:
-                    min_weight = min(weight_y_list)
-                    min_index = weight_y_list.index(min_weight)
-                    index_value = cords_y_list[min_index]
-                    self.matrix[index][index_value] = min_weight
-                    weight_y_list.pop(min_index)
                     y_count += 1
-            if value in self.three_y_exits:
-                while x_count < 1:
-                    min_weight = min(weight_x_list)
-                    min_index = weight_x_list.index(min_weight)
-                    index_value = cords_x_list[min_index]
-                    self.matrix[index][index_value] = min_weight
-                    weight_x_list.pop(min_index)
+            elif value in self.four_exits:
+                while x_count < 2 and y_count < 2:
+                    min_x_weight = min(weight_x_list)
+                    min_x_index = weight_x_list.index(min_x_weight)
+                    index_x_value = cords_x_list[min_x_index]
+                    min_y_weight = min(weight_y_list)
+                    min_y_index = weight_y_list.index(min_y_weight)
+                    index_y_value = cords_y_list[min_y_index]
+                    self.matrix[index][index_x_value] = min_x_weight
+                    self.matrix[index][index_y_value] = min_y_weight
+                    weight_x_list[min_x_index] = 100
+                    weight_y_list[min_y_index] = 100
                     x_count += 1
-                while y_count < 2:
-                    min_weight = min(weight_y_list)
-                    min_index = weight_y_list.index(min_weight)
-                    index_value = cords_y_list[min_index]
-                    self.matrix[index][index_value] = min_weight
-                    weight_y_list.pop(min_index)
                     y_count += 1
-            if value in self.three_x_exits:
+            elif value in self.three_x_exits:
                 while x_count < 2:
-                    min_weight = min(weight_x_list)
-                    min_index = weight_x_list.index(min_weight)
-                    index_value = cords_x_list[min_index]
-                    self.matrix[index][index_value] = min_weight
-                    weight_x_list.pop(min_index)
+                    min_x_weight = min(weight_x_list)
+                    min_x_index = weight_x_list.index(min_x_weight)
+                    index_x_value = cords_x_list[min_x_index]
+                    if y_count < 1:
+                        min_y_weight = min(weight_y_list)
+                        min_y_index = weight_y_list.index(min_y_weight)
+                        index_y_value = cords_y_list[min_y_index]
+                        self.matrix[index][index_y_value] = min_y_weight
+                        weight_y_list[min_y_index] = 100
+                    self.matrix[index][index_x_value] = min_x_weight
+                    weight_x_list[min_x_index] = 100
                     x_count += 1
-                while y_count < 1:
-                    min_weight = min(weight_y_list)
-                    min_index = weight_y_list.index(min_weight)
-                    index_value = cords_y_list[min_index]
-                    self.matrix[index][index_value] = min_weight
-                    weight_y_list.pop(min_index)
                     y_count += 1
-            if value in self.four_exits:
-                while x_count < 2:
-                    min_weight = min(weight_x_list)
-                    min_index = weight_x_list.index(min_weight)
-                    index_value = cords_x_list[min_index]
-                    self.matrix[index][index_value] = min_weight
-                    weight_x_list.pop(min_index)
-                    x_count += 1
+            elif value in self.three_y_exits:
                 while y_count < 2:
-                    min_weight = min(weight_y_list)
-                    min_index = weight_y_list.index(min_weight)
-                    index_value = cords_y_list[min_index]
-                    self.matrix[index][index_value] = min_weight
-                    weight_y_list.pop(min_index)
+                    min_y_weight = min(weight_y_list)
+                    min_y_index = weight_y_list.index(min_y_weight)
+                    index_y_value = cords_y_list[min_y_index]
+                    if x_count < 1:
+                        min_x_weight = min(weight_x_list)
+                        min_x_index = weight_x_list.index(min_x_weight)
+                        index_x_value = cords_x_list[min_x_index]
+                        self.matrix[index][index_x_value] = min_x_weight
+                        weight_x_list[min_x_index] = 100
+                    self.matrix[index][index_y_value] = min_y_weight
+                    weight_y_list[min_y_index] = 100
+                    x_count += 1
                     y_count += 1
 
+        print(self.matrix)
 
     def nearest_neighbour(self):
         for value in self.intersections:
@@ -172,7 +170,8 @@ class Enemy:
                     self.three_x_exits.append(value)
             if bool(a in self.board.free_pos) == bool(b in self.board.free_pos) and bool(c in self.board.free_pos) == bool(d in self.board.free_pos):
                 self.four_exits.append(value)
+
         print(self.two_exits)
-        print(self.three_y_exits)
         print(self.three_x_exits)
+        print(self.three_y_exits)
         print(self.four_exits)

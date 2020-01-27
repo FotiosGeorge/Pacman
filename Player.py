@@ -9,11 +9,15 @@ class Player(object):
         self.pos = [(self.x, self.y)]
         self.score = 0
         self.player_lives = 3
+        self.last_intersection = []
 
     def movement(self, x, y):
+        if self.pos in self.board.intersections:
+            self.last_intersection.append(self.pos)
         self.x += x
         self.y += y
-        self.pos = [self.x, self.y]
+        self.pos = (self.x, self.y)
+        print(self.last_intersection)
 
     def draw(self):
         pygame.draw.circle(self.board.window, (255, 255, 0), (self.x, self.y), 8)
