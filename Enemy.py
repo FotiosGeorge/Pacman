@@ -25,8 +25,6 @@ class Enemy:
         self.direction = direction
 
     def moves(self):
-        if self.pos in self.board.intersections:
-            self.last_intersection.append(self.pos)
         if self.direction == 'L' and self.spawned is True:
             self.x -= self.board.cell_width
             pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
@@ -175,12 +173,6 @@ class Enemy:
             if bool(a in self.board.free_pos) == bool(b in self.board.free_pos) and bool(c in self.board.free_pos) == bool(d in self.board.free_pos):
                 self.four_exits.append(value)
 
-    def printSolution(self, dist):
-        row = len(self.matrix)
-        print("Vertex to Distance from Source")
-        for node in range(row):
-            print(0, " to destination ", node, "'s distance is", dist[node])
-
     def minDistance(self, dist, sptSet):
         mini = float("inf")
         min_index = -1
@@ -205,6 +197,8 @@ class Enemy:
             dist[source] = 0
             sptSet = [False] * row
 
+            dict_nodes = {}
+
             for cout in range(row):
 
                 u = self.minDistance(dist, sptSet)
@@ -213,6 +207,18 @@ class Enemy:
                 for v in range(row):
                     if self.matrix[u][v] > 0 and (sptSet[v] is False) and dist[v] > (dist[u] + self.matrix[u][v]):
                         dist[v] = dist[u] + self.matrix[u][v]
+                        dict_nodes[v] = u
 
-            self.printSolution(dist)
-            print(dist)
+            n = destination
+            path = [n]
+            while n != source:
+                path.append(dict_nodes[n])
+                n = dict_nodes[n]
+            path.reverse()
+            try:
+                cords = self.board.intersections[path[0]]
+                cords_next = self.board.intersections[path[1]]
+                return cords, cords_next
+            except IndexError:
+                print("error")
+                return None, None

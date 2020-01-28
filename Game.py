@@ -126,10 +126,10 @@ class Board(object):
         self.player = Player(self)
         self.intersections = []
         self.inky = Enemy(self, self.player, (178, 225, 255), 'L', False)
-        self.blinky = Enemy(self, self.player, (178, 225, 120), 'R', False)
-        self.pinky = Enemy(self, self.player, (93, 5, 120), 'L', False)
-        self.clyde = Enemy(self, self.player, (154, 253, 78), 'R', False)
-        self.enemy = [self.inky, self.blinky, self.pinky, self.clyde]
+        #self.blinky = Enemy(self, self.player, (178, 225, 120), 'R', False)
+        #self.pinky = Enemy(self, self.player, (93, 5, 120), 'L', False)
+        #self.clyde = Enemy(self, self.player, (154, 253, 78), 'R', False)
+        self.enemy = [self.inky]
 
     def play_event(self):
         self.clock.tick(60)
@@ -147,9 +147,9 @@ class Board(object):
         self.player.update()
         self.check_timer()
         self.inky.update()
-        self.blinky.update()
-        self.pinky.update()
-        self.clyde.update()
+        #self.blinky.update()
+        #self.pinky.update()
+        #self.clyde.update()
         pygame.display.update()
 
     def play_draw(self):
@@ -167,11 +167,36 @@ class Board(object):
         self.enemy_moves()
 
     def enemy_moves(self):
-        pygame.time.delay(150)
+        pygame.time.delay(250)
+
         for enemy in self.enemy:
-            enemy.changeLocation(random.choice(['L', 'U', 'D', 'R']))
-            self.enemy_collision(enemy.direction, enemy)
-            enemy.dijkstra()
+            if enemy.pos in self.intersections:
+                enemy.last_intersection.append(enemy.pos)
+            if (len(enemy.last_intersection) and len(self.player.last_intersection)) != 0:
+                cords, cords_next = enemy.dijkstra()
+                print(cords)
+                print("now")
+                print(cords_next)
+                print("next")
+                if (cords or cords_next) is not None:
+                    if cords[0] > cords_next[0]:
+                        enemy.changeLocation('L')
+                        self.enemy_collision(enemy.direction, enemy)
+                    if cords[0] < cords_next[0]:
+                        enemy.changeLocation('R')
+                        self.enemy_collision(enemy.direction, enemy)
+                    if cords[1] < cords_next[1]:
+                        enemy.changeLocation('D')
+                        self.enemy_collision(enemy.direction, enemy)
+                    if cords[1] > cords_next[1]:
+                        enemy.changeLocation('U')
+                        self.enemy_collision(enemy.direction, enemy)
+                else:
+                    enemy.changeLocation(random.choice(['L', 'U', 'D', 'R']))
+                    self.enemy_collision(enemy.direction, enemy)
+            else:
+                enemy.changeLocation(random.choice(['L', 'U', 'D', 'R']))
+                self.enemy_collision(enemy.direction, enemy)
 
     def check_timer(self):
         spawn_time = time.time()
@@ -247,6 +272,8 @@ class Board(object):
                     return None
 
     def enemy_collision(self, direction, enemy):
+        x = enemy.x
+        y = enemy.y
         if direction == "L":
             for tup in self.free_cells:
                 if (tup[0] == enemy.x - self.cell_width) and (tup[1] == enemy.y):

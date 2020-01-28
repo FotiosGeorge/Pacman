@@ -30,9 +30,9 @@ if __name__ == '__main__':
         while not terminate and state == "Play":
             if create_count < 1:
                 board.inky.create_matrix()
-                board.pinky.create_matrix()
-                board.blinky.create_matrix()
-                board.clyde.create_matrix()
+                #board.pinky.create_matrix()
+                #board.blinky.create_matrix()
+                #board.clyde.create_matrix()
             board.play_event()
             board.play_draw()
             board.play_update()
