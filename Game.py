@@ -125,10 +125,10 @@ class Board(object):
         ########Initialization###########
         self.player = Player(self)
         self.intersections = []
-        self.inky = Enemy(self, (178, 225, 255), 'L', False)
-        self.blinky = Enemy(self, (178, 225, 120), 'R', False)
-        self.pinky = Enemy(self, (93, 5, 120), 'L', False)
-        self.clyde = Enemy(self, (154, 253, 78), 'R', False)
+        self.inky = Enemy(self, self.player, (178, 225, 255), 'L', False)
+        self.blinky = Enemy(self, self.player, (178, 225, 120), 'R', False)
+        self.pinky = Enemy(self, self.player, (93, 5, 120), 'L', False)
+        self.clyde = Enemy(self, self.player, (154, 253, 78), 'R', False)
         self.enemy = [self.inky, self.blinky, self.pinky, self.clyde]
 
     def play_event(self):
@@ -171,6 +171,7 @@ class Board(object):
         for enemy in self.enemy:
             enemy.changeLocation(random.choice(['L', 'U', 'D', 'R']))
             self.enemy_collision(enemy.direction, enemy)
+            enemy.dijkstra()
 
     def check_timer(self):
         spawn_time = time.time()
@@ -203,6 +204,7 @@ class Board(object):
                 if self.x_coord == 1260:
                     self.x_coord = 0
             self.y_coord += 24
+
         for value in self.free_cells:
             x1 = (value[0] + 45, value[1])
             x2 = (value[0] - 45, value[1])

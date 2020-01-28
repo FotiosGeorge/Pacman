@@ -17,7 +17,6 @@ class Player(object):
         self.x += x
         self.y += y
         self.pos = (self.x, self.y)
-        print(self.last_intersection)
 
     def draw(self):
         pygame.draw.circle(self.board.window, (255, 255, 0), (self.x, self.y), 8)

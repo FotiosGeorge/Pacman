@@ -3,14 +3,17 @@ import time
 
 
 class Enemy:
-    def __init__(self, board, colour, direction, spawned):
+    def __init__(self, board, player, colour, direction, spawned):
+        self.player = player
         self.board = board
         self.x = 607
         self.y = 324
+        self.pos = (self.x, self.y)
         self.direction = direction
         self.colour = colour
         self.spawned = spawned
         self.intersections = []
+        self.last_intersection = []
         self.two_exits = []
         self.three_y_exits = []
         self.three_x_exits = []
@@ -22,6 +25,8 @@ class Enemy:
         self.direction = direction
 
     def moves(self):
+        if self.pos in self.board.intersections:
+            self.last_intersection.append(self.pos)
         if self.direction == 'L' and self.spawned is True:
             self.x -= self.board.cell_width
             pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
@@ -34,6 +39,7 @@ class Enemy:
         if self.direction == 'D' and self.spawned is True:
             self.y += self.board.cell_height
             pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
+        self.pos = (self.x, self.y)
 
     def update(self):
         pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
@@ -152,8 +158,6 @@ class Enemy:
                     x_count += 1
                     y_count += 1
 
-        print(self.matrix)
-
     def nearest_neighbour(self):
         for value in self.intersections:
             a = (value[0] + 1, value[1]) #right
@@ -171,7 +175,44 @@ class Enemy:
             if bool(a in self.board.free_pos) == bool(b in self.board.free_pos) and bool(c in self.board.free_pos) == bool(d in self.board.free_pos):
                 self.four_exits.append(value)
 
-        print(self.two_exits)
-        print(self.three_x_exits)
-        print(self.three_y_exits)
-        print(self.four_exits)
+    def printSolution(self, dist):
+        row = len(self.matrix)
+        print("Vertex to Distance from Source")
+        for node in range(row):
+            print(0, " to destination ", node, "'s distance is", dist[node])
+
+    def minDistance(self, dist, sptSet):
+        mini = float("inf")
+        min_index = -1
+        row = len(self.matrix)
+        for v in range(row):
+            if dist[v] < mini and sptSet[v] is False:
+                mini = dist[v]
+                min_index = v
+        return min_index
+
+    def dijkstra(self):
+        if (len(self.last_intersection) and len(self.player.last_intersection)) != 0:
+            row = len(self.matrix)
+            col = len(self.matrix[0])
+
+            source_cords = self.last_intersection[-1]
+            destination_cords = self.player.last_intersection[-1]
+            source = self.board.intersections.index(source_cords)
+            destination = self.board.intersections.index(destination_cords)
+
+            dist = [float("inf")] * row
+            dist[source] = 0
+            sptSet = [False] * row
+
+            for cout in range(row):
+
+                u = self.minDistance(dist, sptSet)
+                sptSet[u] = True
+
+                for v in range(row):
+                    if self.matrix[u][v] > 0 and (sptSet[v] is False) and dist[v] > (dist[u] + self.matrix[u][v]):
+                        dist[v] = dist[u] + self.matrix[u][v]
+
+            self.printSolution(dist)
+            print(dist)

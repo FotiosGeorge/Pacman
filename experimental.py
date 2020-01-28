@@ -17,6 +17,7 @@ if __name__ == '__main__':
             board.load()
 
     def game_loop(state, terminate):
+        create_count = 0
         while not terminate and state == "Menu":
             menu.menu_event()
             menu.menu_draw()
@@ -27,12 +28,17 @@ if __name__ == '__main__':
             if menu.terminate:
                 terminate = True
         while not terminate and state == "Play":
+            if create_count < 1:
+                board.inky.create_matrix()
+                board.pinky.create_matrix()
+                board.blinky.create_matrix()
+                board.clyde.create_matrix()
             board.play_event()
             board.play_draw()
             board.play_update()
+            create_count += 1
             if board.terminate:
                 terminate = True
-                board.inky.create_matrix()
         pygame.quit()
 
     load("Menu")
