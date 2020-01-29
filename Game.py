@@ -11,7 +11,7 @@ pygame.init()
 pygame.display.set_caption("Pacman")
 screen_width = 1260
 screen_height = 744
-window = pygame.display.set_mode((screen_width, screen_height))
+window = pygame.display.set_mode((screen_width, screen_height), FULLSCREEN)
 
 #-----------------------------------------------Menu_State-----------------------------------------------#
 
@@ -167,28 +167,24 @@ class Board(object):
         self.enemy_moves()
 
     def enemy_moves(self):
-        pygame.time.delay(250)
+        pygame.time.delay(150)
 
         for enemy in self.enemy:
             if enemy.pos in self.intersections:
                 enemy.last_intersection.append(enemy.pos)
             if (len(enemy.last_intersection) and len(self.player.last_intersection)) != 0:
                 cords, cords_next = enemy.dijkstra()
-                print(cords)
-                print("now")
-                print(cords_next)
-                print("next")
                 if (cords or cords_next) is not None:
-                    if cords[0] > cords_next[0]:
+                    if enemy.pos[0] > cords_next[0]:
                         enemy.changeLocation('L')
                         self.enemy_collision(enemy.direction, enemy)
-                    if cords[0] < cords_next[0]:
+                    if enemy.pos[0] < cords_next[0]:
                         enemy.changeLocation('R')
                         self.enemy_collision(enemy.direction, enemy)
-                    if cords[1] < cords_next[1]:
+                    if enemy.pos[1] < cords_next[1]:
                         enemy.changeLocation('D')
                         self.enemy_collision(enemy.direction, enemy)
-                    if cords[1] > cords_next[1]:
+                    if enemy.pos[1] > cords_next[1]:
                         enemy.changeLocation('U')
                         self.enemy_collision(enemy.direction, enemy)
                 else:
@@ -272,8 +268,6 @@ class Board(object):
                     return None
 
     def enemy_collision(self, direction, enemy):
-        x = enemy.x
-        y = enemy.y
         if direction == "L":
             for tup in self.free_cells:
                 if (tup[0] == enemy.x - self.cell_width) and (tup[1] == enemy.y):
@@ -294,6 +288,7 @@ class Board(object):
                 if (tup[0] == enemy.x) and (tup[1] == enemy.y + self.cell_height):
                     enemy.moves()
                     break
+        pygame.display.update()
 
     def load(self):
         self.background = pygame.image.load("Maze.png")
