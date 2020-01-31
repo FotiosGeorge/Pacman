@@ -221,5 +221,13 @@ class Enemy:
                 cords_next = self.board.intersections[path[1]]
                 return cords, cords_next
             except IndexError:
-                print("error")
                 return None, None
+
+    def breadth_first(self):
+        if (len(self.last_intersection) and len(self.player.last_intersection)) != 0:
+            row = len(self.matrix)
+            col = len(self.matrix[0])
+            sptSet = [False] * row
+        return None
+
+
