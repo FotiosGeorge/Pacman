@@ -11,7 +11,7 @@ pygame.init()
 pygame.display.set_caption("Pacman")
 screen_width = 1260
 screen_height = 744
-window = pygame.display.set_mode((screen_width, screen_height), FULLSCREEN)
+window = pygame.display.set_mode((screen_width, screen_height))
 
 #-----------------------------------------------Menu_State-----------------------------------------------#
 
@@ -125,10 +125,10 @@ class Board(object):
         ########Initialization###########
         self.player = Player(self)
         self.intersections = []
-        self.inky = Enemy(self, self.player, (178, 225, 255), 'L', False)
-        #self.blinky = Enemy(self, self.player, (178, 225, 120), 'R', False)
-        #self.pinky = Enemy(self, self.player, (93, 5, 120), 'L', False)
-        #self.clyde = Enemy(self, self.player, (154, 253, 78), 'R', False)
+        self.inky = Enemy(self, self.player, (178, 225, 255), 'L', False, "inky")
+        #self.blinky = Enemy(self, self.player, (178, 225, 120), 'R', False, "blinky")
+        #self.pinky = Enemy(self, self.player, (93, 5, 120), 'L', False, "pinky")
+        #self.clyde = Enemy(self, self.player, (154, 253, 78), 'R', False, "clyde")
         self.enemy = [self.inky]
 
     def play_event(self):
@@ -173,7 +173,8 @@ class Board(object):
             if enemy.pos in self.intersections:
                 enemy.last_intersection.append(enemy.pos)
             if (len(enemy.last_intersection) and len(self.player.last_intersection)) != 0:
-                cords, cords_next = enemy.dijkstra()
+                if enemy.name == "inky":
+                    cords, cords_next = enemy.dijkstra()
                 if (cords or cords_next) is not None:
                     if enemy.pos[0] > cords_next[0]:
                         enemy.changeLocation('L')
@@ -288,7 +289,6 @@ class Board(object):
                 if (tup[0] == enemy.x) and (tup[1] == enemy.y + self.cell_height):
                     enemy.moves()
                     break
-        pygame.display.update()
 
     def load(self):
         self.background = pygame.image.load("Maze.png")

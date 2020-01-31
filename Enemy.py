@@ -3,9 +3,10 @@ import time
 
 
 class Enemy:
-    def __init__(self, board, player, colour, direction, spawned):
+    def __init__(self, board, player, colour, direction, spawned, name):
         self.player = player
         self.board = board
+        self.name = name
         self.x = 607
         self.y = 324
         self.pos = (self.x, self.y)
