@@ -4,14 +4,17 @@ from pygame.locals import *
 from Grid import *
 from Player import *
 from Enemy import *
+from Powerup import *
 import time
 import random
 
+pygame.mixer.pre_init(44100, 16, 2, 4096)
 pygame.init()
 pygame.display.set_caption("Pacman")
 screen_width = 1260
 screen_height = 744
 window = pygame.display.set_mode((screen_width, screen_height))
+
 
 #-----------------------------------------------Menu_State-----------------------------------------------#
 
@@ -109,6 +112,7 @@ class Board(object):
         self.clock = pygame.time.Clock()
         self.terminate = terminate
         self.spawn_count = 0
+        self.power_count = 0
         self.x_coord = 0
         self.y_coord = 0
         self.walls = []
@@ -123,12 +127,13 @@ class Board(object):
         self.offset_height = self.cell_height // 2
         self.base_time = time.time()
         ########Initialization###########
+        self.power = Items(self)
         self.player = Player(self)
         self.intersections = []
         self.inky = Enemy(self, self.player, (178, 225, 255), 'L', False, "inky")
-        #self.blinky = Enemy(self, self.player, (178, 225, 120), 'R', False, "blinky")
-        #self.pinky = Enemy(self, self.player, (93, 5, 120), 'L', False, "pinky")
-        #self.clyde = Enemy(self, self.player, (154, 253, 78), 'R', False, "clyde")
+        self.blinky = Enemy(self, self.player, (178, 225, 120), 'R', False, "blinky")
+        self.pinky = Enemy(self, self.player, (93, 5, 120), 'L', False, "pinky")
+        self.clyde = Enemy(self, self.player, (154, 253, 78), 'R', False, "clyde")
         self.enemy = [self.inky]
 
     def play_event(self):
@@ -146,10 +151,12 @@ class Board(object):
     def play_update(self):
         self.player.update()
         self.check_timer()
+        self.power.check_items()
+        self.power.check_power_count()
         self.inky.update()
-        #self.blinky.update()
-        #self.pinky.update()
-        #self.clyde.update()
+        self.blinky.update()
+        self.pinky.update()
+        self.clyde.update()
         pygame.display.update()
 
     def play_draw(self):
@@ -157,6 +164,7 @@ class Board(object):
         self.window.blit(self.background, (0, 0))
         """self.draw_grid()"""
         self.draw_pops()
+        self.power.draw_items()
         self.player.draw()
         if self.check_timer():
             for enemy in self.enemy:
@@ -172,27 +180,71 @@ class Board(object):
         for enemy in self.enemy:
             if enemy.pos in self.intersections:
                 enemy.last_intersection.append(enemy.pos)
-            if (len(enemy.last_intersection) and len(self.player.last_intersection)) != 0:
+            if ((len(enemy.last_intersection) and len(self.player.last_intersection)) != 0) and (self.player.power != "invisibility"):
                 if enemy.name == "inky":
                     cords, cords_next = enemy.dijkstra()
-                if (cords or cords_next) is not None:
-                    if enemy.pos[0] > cords_next[0]:
-                        enemy.changeLocation('L')
+                    self.searching_location(enemy, cords, cords_next)
+
+                if enemy.name == "blinky":
+                    bool_value = self.in_line(enemy)
+                    if bool_value is True:
+                        enemy.changeLocation(random.choice(['L', 'U', 'D', 'R']))
                         self.enemy_collision(enemy.direction, enemy)
-                    if enemy.pos[0] < cords_next[0]:
-                        enemy.changeLocation('R')
+                    else:
+                        if enemy.pos[0] > self.player.pos[0]:
+                            enemy.changeLocation('L')
+                            self.enemy_collision(enemy.direction, enemy)
+                        if enemy.pos[0] < self.player.pos[0]:
+                            enemy.changeLocation('R')
+                            self.enemy_collision(enemy.direction, enemy)
+                        if enemy.pos[1] < self.player.pos[1]:
+                            enemy.changeLocation('D')
+                            self.enemy_collision(enemy.direction, enemy)
+                        if enemy.pos[1] > self.player.pos[1]:
+                            enemy.changeLocation('U')
+                            self.enemy_collision(enemy.direction, enemy)
+
+                if enemy.name == "pinky":
+                    cords, cords_next = enemy.breadth_first()
+                    self.searching_location(enemy, cords, cords_next)
+
+                if enemy.name == "clyde":
+                    if enemy.pos in self.intersections:
+                        enemy.changeLocation(random.choice(['L', 'U', 'D', 'R']))
                         self.enemy_collision(enemy.direction, enemy)
-                    if enemy.pos[1] < cords_next[1]:
-                        enemy.changeLocation('D')
+                    else:
                         self.enemy_collision(enemy.direction, enemy)
-                    if enemy.pos[1] > cords_next[1]:
-                        enemy.changeLocation('U')
-                        self.enemy_collision(enemy.direction, enemy)
-                else:
-                    enemy.changeLocation(random.choice(['L', 'U', 'D', 'R']))
-                    self.enemy_collision(enemy.direction, enemy)
+
             else:
                 enemy.changeLocation(random.choice(['L', 'U', 'D', 'R']))
+                self.enemy_collision(enemy.direction, enemy)
+
+    def searching_location(self, enemy, cords, cords_next):
+        if (cords or cords_next) is not None:
+            if enemy.pos[0] > cords_next[0]:
+                enemy.changeLocation('L')
+                self.enemy_collision(enemy.direction, enemy)
+            if enemy.pos[0] < cords_next[0]:
+                enemy.changeLocation('R')
+                self.enemy_collision(enemy.direction, enemy)
+            if enemy.pos[1] < cords_next[1]:
+                enemy.changeLocation('D')
+                self.enemy_collision(enemy.direction, enemy)
+            if enemy.pos[1] > cords_next[1]:
+                enemy.changeLocation('U')
+                self.enemy_collision(enemy.direction, enemy)
+        else:
+            if enemy.pos[0] > self.player.pos[0]:
+                enemy.changeLocation('L')
+                self.enemy_collision(enemy.direction, enemy)
+            if enemy.pos[0] < self.player.pos[0]:
+                enemy.changeLocation('R')
+                self.enemy_collision(enemy.direction, enemy)
+            if enemy.pos[1] < self.player.pos[1]:
+                enemy.changeLocation('D')
+                self.enemy_collision(enemy.direction, enemy)
+            if enemy.pos[1] > self.player.pos[1]:
+                enemy.changeLocation('U')
                 self.enemy_collision(enemy.direction, enemy)
 
     def check_timer(self):
@@ -209,6 +261,17 @@ class Board(object):
         for line in range(screen_height // 24):
             pygame.draw.line(self.window, (107, 107, 107), (0, line * self.cell_height),
                              (screen_width, line * self.cell_height))
+
+    def in_line(self, enemy):
+        if (enemy.pos[0] == self.player.pos[0]) or (enemy.pos[1] == self.player.pos[1]):
+            for value in self.walls:
+                if (value[0] == enemy.pos[0]) or (value[1] == enemy.pos[1]):
+                    if (enemy.pos[1] < value[1] < self.player.pos[1]) or (enemy.pos[1] > value[1] > self.player.pos[1]):
+                        return True
+                    if (enemy.pos[0] < value[0] < self.player.pos[0]) or (enemy.pos[0] > value[0] > self.player.pos[0]):
+                        return True
+            return False
+        return True
 
     def cells(self):
         for y, row in enumerate(self.Maze):
@@ -243,6 +306,8 @@ class Board(object):
         if len(self.dots) == 0:
             for value in self.free_cells:
                 self.dots.append((value[0], value[1]))
+            self.power.spawn()
+            for value in self.dots:
                 pygame.draw.circle(self.window, (255, 215, 0), (value[0], value[1]), 5)
 
     def player_collision(self):
@@ -295,4 +360,5 @@ class Board(object):
         self.background = pygame.transform.smoothscale(self.background, (screen_width, screen_height))
         self.window.blit(self.background, (0, 0))
         self.cells()
+        self.power.spawn()
         pygame.display.update()

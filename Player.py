@@ -1,12 +1,15 @@
 import pygame
+from Powerup import *
 
 
 class Player(object):
     def __init__(self, board):
         self.board = board
+        self.power = "empty"
         self.x = 607
         self.y = 420
         self.pos = [(self.x, self.y)]
+        self.music_count = 0
         self.score = 0
         self.player_lives = 3
         self.last_intersection = []
@@ -45,13 +48,22 @@ class Player(object):
 
         for tup2 in self.board.dots:
             if (tup2[0] == self.x) and (tup2[1] == self.y):
+                if self.music_count % 4 == 0:
+                    pygame.mixer.music.load("pacman_chomp.wav")
+                    pygame.mixer.music.set_volume(0.1)
+                    pygame.mixer.music.play(1)
                 self.board.dots.remove(tup2)
                 self.score += 1
                 self.score_system()
+                self.music_count += 1
                 break
         self.score_system()
+
         for tup2 in self.board.enemy:
             if (tup2.x == self.x) and (tup2.y == self.y):
+                pygame.mixer.music.load("pacman_death.wav")
+                pygame.mixer.music.set_volume(0.1)
+                pygame.mixer.music.play(1)
                 self.player_lives -= 1
                 self.board.player.x = 607
                 self.board.player.y = 420

@@ -1,5 +1,6 @@
 import pygame
 import time
+from collections import defaultdict
 
 
 class Enemy:
@@ -20,6 +21,7 @@ class Enemy:
         self.three_x_exits = []
         self.four_exits = []
         self.matrix = []
+        self.adjacency_list = defaultdict(list)
         self.matrix_equivalent = {}
 
     def changeLocation(self, direction):
@@ -223,11 +225,40 @@ class Enemy:
             except IndexError:
                 return None, None
 
+    def matrix_to__list(self):
+        for i, value in enumerate(self.matrix, 0):
+            for j, value2 in enumerate(value, 0):
+                if value2 != float("inf"):
+                    self.adjacency_list[i].append(j)
+
     def breadth_first(self):
         if (len(self.last_intersection) and len(self.player.last_intersection)) != 0:
-            row = len(self.matrix)
-            col = len(self.matrix[0])
-            sptSet = [False] * row
-        return None
 
+            source_cords = self.last_intersection[-1]
+            destination_cords = self.player.last_intersection[-1]
+            source = self.board.intersections.index(source_cords)
+            destination = self.board.intersections.index(destination_cords)
 
+            queue = [[source]]
+            visited = set()
+
+            while queue:
+
+                path = queue.pop(0)
+                vertex = path[-1]
+
+                if vertex == destination:
+                    try:
+                        cords = self.board.intersections[path[0]]
+                        cords_next = self.board.intersections[path[1]]
+                        return cords, cords_next
+                    except IndexError:
+                        return None, None
+                elif vertex not in visited:
+                    for current_neighbour in self.adjacency_list.get(vertex, []):
+                        new_path = list(path)
+                        new_path.append(current_neighbour)
+                        queue.append(new_path)
+
+                    visited.add(vertex)
+        return None, None
