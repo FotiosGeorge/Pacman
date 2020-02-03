@@ -5,6 +5,7 @@ from Grid import *
 from Player import *
 from Enemy import *
 from Powerup import *
+from Music import *
 import time
 import random
 
@@ -115,6 +116,7 @@ class Board(object):
         self.power_count = 0
         self.x_coord = 0
         self.y_coord = 0
+        self.direction = " "
         self.walls = []
         self.walls_pos = []
         self.free_cells = []
@@ -127,6 +129,7 @@ class Board(object):
         self.offset_height = self.cell_height // 2
         self.base_time = time.time()
         ########Initialization###########
+        self.music = Music(self)
         self.power = Items(self)
         self.player = Player(self)
         self.intersections = []
@@ -134,7 +137,7 @@ class Board(object):
         self.blinky = Enemy(self, self.player, (178, 225, 120), 'R', False, "blinky")
         self.pinky = Enemy(self, self.player, (93, 5, 120), 'L', False, "pinky")
         self.clyde = Enemy(self, self.player, (154, 253, 78), 'R', False, "clyde")
-        self.enemy = [self.inky]
+        self.enemy = []
 
     def play_event(self):
         self.clock.tick(60)
@@ -316,21 +319,25 @@ class Board(object):
             for tup in self.free_cells:
                 if (tup[0] == self.player.x - self.cell_width) and (tup[1] == self.player.y):
                     self.player.movement(-self.cell_width, 0)
+                    self.direction = "L"
                     return None
         if keys[pygame.K_RIGHT]:
             for tup in self.free_cells:
                 if (tup[0] == self.player.x + self.cell_width) and (tup[1] == self.player.y):
                     self.player.movement(self.cell_width, 0)
+                    self.direction = "R"
                     return None
         if keys[pygame.K_UP]:
             for tup in self.free_cells:
                 if (tup[0] == self.player.x) and (tup[1] == self.player.y - self.cell_height):
                     self.player.movement(0, -self.cell_height)
+                    self.direction = "U"
                     return None
         if keys[pygame.K_DOWN]:
             for tup in self.free_cells:
                 if (tup[0] == self.player.x) and (tup[1] == self.player.y + self.cell_height):
                     self.player.movement(0, self.cell_height)
+                    self.direction = "D"
                     return None
 
     def enemy_collision(self, direction, enemy):

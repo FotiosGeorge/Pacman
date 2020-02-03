@@ -49,9 +49,7 @@ class Player(object):
         for tup2 in self.board.dots:
             if (tup2[0] == self.x) and (tup2[1] == self.y):
                 if self.music_count % 4 == 0:
-                    pygame.mixer.music.load("pacman_chomp.wav")
-                    pygame.mixer.music.set_volume(0.1)
-                    pygame.mixer.music.play(1)
+                    self.board.music.eating_music()
                 self.board.dots.remove(tup2)
                 self.score += 1
                 self.score_system()
@@ -61,12 +59,11 @@ class Player(object):
 
         for tup2 in self.board.enemy:
             if (tup2.x == self.x) and (tup2.y == self.y):
-                pygame.mixer.music.load("pacman_death.wav")
-                pygame.mixer.music.set_volume(0.1)
-                pygame.mixer.music.play(1)
+                self.board.music.death_music()
                 self.player_lives -= 1
                 self.board.player.x = 607
                 self.board.player.y = 420
+                self.board.player.power = "empty"
                 break
         self.lives_system()
 

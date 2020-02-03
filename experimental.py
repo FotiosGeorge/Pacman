@@ -21,9 +21,7 @@ if __name__ == '__main__':
         music_count = 0
         while not terminate and state == "Menu":
             if music_count % 90 == 0:
-                pygame.mixer.music.load("pacman_beginning.wav")
-                pygame.mixer.music.set_volume(0.1)
-                pygame.mixer.music.play(-1)
+                board.music.menu_music()
             menu.menu_event()
             menu.menu_draw()
             menu.menu_update()
