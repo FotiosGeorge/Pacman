@@ -14,7 +14,7 @@ pygame.init()
 pygame.display.set_caption("Pacman")
 screen_width = 1260
 screen_height = 744
-window = pygame.display.set_mode((screen_width, screen_height))
+window = pygame.display.set_mode((screen_width, screen_height), FULLSCREEN)
 
 
 #-----------------------------------------------Menu_State-----------------------------------------------#
@@ -226,7 +226,7 @@ class Board(object):
                 enemy.changeLocation(random.choice(['L', 'U', 'D', 'R']))
                 self.enemy_collision(enemy.direction, enemy)
 
-            if (self.power.end_position <= enemy.pos <= self.power.start_position) or (self.power.end_position >= enemy.pos >= self.power.start_position):
+            if ((self.power.end_position <= enemy.pos <= self.power.start_position) or (self.power.end_position >= enemy.pos >= self.power.start_position)) and (self.player.power != "empty"):
                 self.music.enemy_death_music()
                 enemy.x = 607
                 enemy.y = 324

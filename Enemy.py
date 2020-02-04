@@ -8,6 +8,7 @@ class Enemy:
         self.player = player
         self.board = board
         self.name = name
+        self.move_counter = 1
         self.x = 607
         self.y = 324
         self.pos = (self.x, self.y)
@@ -28,19 +29,23 @@ class Enemy:
         self.direction = direction
 
     def moves(self):
-        if self.direction == 'L' and self.spawned is True:
-            self.x -= self.board.cell_width
-            pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
-        if self.direction == 'R' and self.spawned is True:
-            self.x += self.board.cell_width
-            pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
-        if self.direction == 'U' and self.spawned is True:
-            self.y -= self.board.cell_height
-            pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
-        if self.direction == 'D' and self.spawned is True:
-            self.y += self.board.cell_height
-            pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
-        self.pos = (self.x, self.y)
+        if self.move_counter % 2 == 0:
+            if self.direction == 'L' and self.spawned is True:
+                self.x -= self.board.cell_width
+                pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
+            if self.direction == 'R' and self.spawned is True:
+                self.x += self.board.cell_width
+                pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
+            if self.direction == 'U' and self.spawned is True:
+                self.y -= self.board.cell_height
+                pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
+            if self.direction == 'D' and self.spawned is True:
+                self.y += self.board.cell_height
+                pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
+            self.pos = (self.x, self.y)
+            self.move_counter += 1
+        else:
+            self.move_counter += 1
 
     def update(self):
         pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
