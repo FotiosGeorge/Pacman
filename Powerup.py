@@ -139,7 +139,7 @@ class Items(object):
     def check_power_count(self):
         if self.board.player.power != "empty":
             self.board.power_count += 1
-            if self.board.power_count % 2000 == 0:
+            if self.board.power_count % 200 == 0:
                 if self.board.player.power == "laser":
                     self.board.player.laser = False
                 if self.board.player.power == "invisibility":
