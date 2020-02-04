@@ -13,6 +13,8 @@ class Items(object):
         self.power_ups = {}
         self.colours = [invisibility, laser]
         self.collect_power = []
+        self.start_position = ()
+        self.end_position = ()
 
     def spawn(self):
         for name in self.name_power_ups:
@@ -54,6 +56,7 @@ class Items(object):
             if (self.board.player.pos == self.power_ups["invisibility"]) and (self.board.power_count == 0) and (self.board.player.power == "empty"):
                 self.carry_item = True
                 power_up = "invisibility"
+                self.board.music.eating_powerup_music()
                 return power_up
             elif self.board.player.power == "invisibility":
                 power_up = "invisibility"
@@ -69,6 +72,7 @@ class Items(object):
             if (self.board.player.pos == self.power_ups["laser"]) and (self.board.power_count == 0) and (self.board.player.power == "empty"):
                 self.carry_item = True
                 power_up = "laser"
+                self.board.music.eating_powerup_music()
                 return power_up
             elif self.board.player.power == "laser":
                 power_up = "laser"
@@ -79,49 +83,77 @@ class Items(object):
         except KeyError:
             return self.board.player.power
 
+    def activate_invisibility(self):
+        self.board.player.cloak = True
+
+    def activate_laser(self):
+        self.board.player.laser = True
+
     def beam(self):
-        if self.board.player.power == "laser":
+        if (self.board.player.power == "laser") and (self.board.player.laser is True):
             direction = self.board.direction
+            current_distance = 10000
+            self.end_position = self.board.player.pos
             if direction == "L":
-                start_position = self.board.player.pos
+                self.start_position = self.board.player.pos
                 for value in self.board.free_cells:
-                    if (value[1] == start_position[1]) and (value[0] < start_position[0]):
-                        if (value[0], value[1]) in self.board.intersections:
-                            end_position = value
-                            pygame.draw.line(self.board.window, (255, 0, 0), start_position, end_position, 5)
-                            break
+                    if (value[1] == self.start_position[1]) and (value[0] <= self.start_position[0]):
+                        if (value[0] - 45, value[1]) in self.board.walls:
+                            distance = self.start_position[0] - value[0]
+                            if distance < current_distance:
+                                current_distance = distance
+                                self.end_position = value
+                pygame.draw.line(self.board.window, (255, 0, 0), self.start_position, self.end_position, 5)
             if direction == "R":
-                start_position = self.board.player.pos
+                self.start_position = self.board.player.pos
                 for value in self.board.free_cells:
-                    if (value[1] == start_position[1]) and (value[0] > start_position[0]):
-                        if (value[0], value[1]) in self.board.intersections:
-                            end_position = value
-                            pygame.draw.line(self.board.window, (255, 0, 0), start_position, end_position, 5)
-                            break
+                    if (value[1] == self.start_position[1]) and (value[0] >= self.start_position[0]):
+                        if (value[0] + 45, value[1]) in self.board.walls:
+                            distance = value[0] - self.start_position[0]
+                            if distance < current_distance:
+                                current_distance = distance
+                                self.end_position = value
+                pygame.draw.line(self.board.window, (255, 0, 0), self.start_position, self.end_position, 5)
             if direction == "U":
-                start_position = self.board.player.pos
+                self.start_position = self.board.player.pos
                 for value in self.board.free_cells:
-                    if (value[0] == start_position[0]) and (value[1] < start_position[1]):
-                        if (value[0], value[1]) in self.board.intersections:
-                            end_position = value
-                            pygame.draw.line(self.board.window, (255, 0, 0), start_position, end_position, 5)
-                            break
+                    if (value[0] == self.start_position[0]) and (value[1] <= self.start_position[1]):
+                        if (value[0], value[1] - 24) in self.board.walls:
+                            distance = self.start_position[1] - value[1]
+                            if distance < current_distance:
+                                current_distance = distance
+                                self.end_position = value
+                pygame.draw.line(self.board.window, (255, 0, 0), self.start_position, self.end_position, 5)
+
             if direction == "D":
-                start_position = self.board.player.pos
+                self.start_position = self.board.player.pos
                 for value in self.board.free_cells:
-                    if (value[0] == start_position[0]) and (value[1] > start_position[1]):
-                        if (value[0], value[1]) in self.board.intersections:
-                            end_position = value
-                            pygame.draw.line(self.board.window, (255, 0, 0), start_position, end_position, 5)
-                            break
+                    if (value[0] == self.start_position[0]) and (value[1] >= self.start_position[1]):
+                        if (value[0], value[1] + 24) in self.board.walls:
+                            distance = value[1] - self.start_position[1]
+                            if distance < current_distance:
+                                current_distance = distance
+                                self.end_position = value
+                pygame.draw.line(self.board.window, (255, 0, 0), self.start_position, self.end_position, 5)
 
     def check_power_count(self):
         if self.board.player.power != "empty":
             self.board.power_count += 1
-            if self.board.power_count % 200 == 0:
+            if self.board.power_count % 2000 == 0:
+                if self.board.player.power == "laser":
+                    self.board.player.laser = False
+                if self.board.player.power == "invisibility":
+                    self.board.player.cloak = False
                 self.board.player.power = "empty"
                 self.board.power_count = 0
                 self.carry_item = False
             else:
                 return None
+
+    def activate_power_up(self):
+        if self.board.player.power == "laser":
+            self.activate_laser()
+        if self.board.player.power == "invisibility":
+            self.activate_invisibility()
+
 

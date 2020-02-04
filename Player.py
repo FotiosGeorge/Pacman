@@ -13,6 +13,8 @@ class Player(object):
         self.score = 0
         self.player_lives = 3
         self.last_intersection = []
+        self.cloak = False
+        self.laser = False
 
     def movement(self, x, y):
         if self.pos in self.board.intersections:

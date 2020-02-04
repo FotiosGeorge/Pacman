@@ -137,10 +137,11 @@ class Board(object):
         self.blinky = Enemy(self, self.player, (178, 225, 120), 'R', False, "blinky")
         self.pinky = Enemy(self, self.player, (93, 5, 120), 'L', False, "pinky")
         self.clyde = Enemy(self, self.player, (154, 253, 78), 'R', False, "clyde")
-        self.enemy = []
+        self.enemy = [self.pinky]
 
     def play_event(self):
         self.clock.tick(60)
+        keys = pygame.key.get_pressed()
         if self.player.player_lives == 0:
             self.terminate = True
         for event in pygame.event.get():
@@ -149,6 +150,9 @@ class Board(object):
             if event.type == pygame.KEYDOWN:
                 if event.key == K_ESCAPE:
                     self.terminate = True
+        if keys[K_f]:
+            self.power.activate_power_up()
+
         self.player_collision()
 
     def play_update(self):
@@ -183,7 +187,7 @@ class Board(object):
         for enemy in self.enemy:
             if enemy.pos in self.intersections:
                 enemy.last_intersection.append(enemy.pos)
-            if ((len(enemy.last_intersection) and len(self.player.last_intersection)) != 0) and (self.player.power != "invisibility"):
+            if ((len(enemy.last_intersection) and len(self.player.last_intersection)) != 0) and (self.player.cloak is False):
                 if enemy.name == "inky":
                     cords, cords_next = enemy.dijkstra()
                     self.searching_location(enemy, cords, cords_next)
@@ -221,6 +225,12 @@ class Board(object):
             else:
                 enemy.changeLocation(random.choice(['L', 'U', 'D', 'R']))
                 self.enemy_collision(enemy.direction, enemy)
+
+            if (self.power.end_position <= enemy.pos <= self.power.start_position) or (self.power.end_position >= enemy.pos >= self.power.start_position):
+                self.music.enemy_death_music()
+                enemy.x = 607
+                enemy.y = 324
+                enemy.spawned = False
 
     def searching_location(self, enemy, cords, cords_next):
         if (cords or cords_next) is not None:

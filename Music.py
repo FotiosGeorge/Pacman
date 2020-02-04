@@ -15,7 +15,17 @@ class Music(object):
         pygame.mixer.music.set_volume(0.1)
         pygame.mixer.music.play(1)
 
+    def enemy_death_music(self):
+        pygame.mixer.music.load("pacman_eatghost.wav")
+        pygame.mixer.music.set_volume(0.1)
+        pygame.mixer.music.play(1)
+
     def eating_music(self):
         pygame.mixer.music.load("pacman_chomp.wav")
+        pygame.mixer.music.set_volume(0.1)
+        pygame.mixer.music.play(1)
+
+    def eating_powerup_music(self):
+        pygame.mixer.music.load("pacman_eatfruit.wav")
         pygame.mixer.music.set_volume(0.1)
         pygame.mixer.music.play(1)
