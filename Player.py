@@ -73,6 +73,3 @@ class Player(object):
         if self.score % 100 == 0:
             if self.cost_speed <= 30:
                 self.cost_speed += 1
-
-
-

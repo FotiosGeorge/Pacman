@@ -154,5 +154,3 @@ class Items(object):
             self.activate_laser()
         if self.board.player.power == "invisibility":
             self.activate_invisibility()
-
-

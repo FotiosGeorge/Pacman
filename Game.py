@@ -137,7 +137,7 @@ class Board(object):
         self.blinky = Enemy(self, self.player, (178, 225, 120), 'R', False, "blinky")
         self.pinky = Enemy(self, self.player, (93, 5, 120), 'L', False, "pinky")
         self.clyde = Enemy(self, self.player, (154, 253, 78), 'R', False, "clyde")
-        self.enemy = [self.inky, self.pinky, self.clyde, self.blinky]
+        self.enemy = [self.inky, self.pinky]
 
     def play_event(self):
         self.clock.tick(120)
@@ -185,6 +185,21 @@ class Board(object):
         pygame.time.delay(150)
 
         for enemy in self.enemy:
+
+            for other_enemy in self.enemy:
+                if (enemy.pos[0] + 45 == other_enemy.pos[0]) and (enemy.pos[1] == other_enemy.pos[1]):
+                    enemy.direction = "L"
+                    self.enemy_collision(enemy.direction, enemy)
+                if (enemy.pos[0] - 45 == other_enemy.pos[0]) and (enemy.pos[1] == other_enemy.pos[1]):
+                    enemy.direction = "R"
+                    self.enemy_collision(enemy.direction, enemy)
+                if (enemy.pos[1] + 24 == other_enemy.pos[1]) and (enemy.pos[0] == other_enemy.pos[0]):
+                    enemy.direction = "U"
+                    self.enemy_collision(enemy.direction, enemy)
+                if (enemy.pos[1] - 24 == other_enemy.pos[1]) and (enemy.pos[0] == other_enemy.pos[0]):
+                    enemy.direction = "D"
+                    self.enemy_collision(enemy.direction, enemy)
+
             enemy.change_matrix()
             if enemy.pos in self.intersections:
                 enemy.last_intersection.append(enemy.pos)

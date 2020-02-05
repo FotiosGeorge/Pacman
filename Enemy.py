@@ -26,6 +26,7 @@ class Enemy:
         self.matrix_copy = []
         self.adjacency_list = defaultdict(list)
         self.matrix_equivalent = {}
+        self.move_available = True
 
     def changeLocation(self, direction):
         self.direction = direction
