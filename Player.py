@@ -12,6 +12,7 @@ class Player(object):
         self.music_count = 0
         self.score = 0
         self.player_lives = 3
+        self.cost_speed = 2
         self.last_intersection = []
         self.cloak = False
         self.laser = False
@@ -68,6 +69,10 @@ class Player(object):
                 self.board.player.power = "empty"
                 break
         self.lives_system()
+
+        if self.score % 100 == 0:
+            if self.cost_speed <= 30:
+                self.cost_speed += 1
 
 
 

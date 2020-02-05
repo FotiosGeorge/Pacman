@@ -124,7 +124,6 @@ class Items(object):
                                 current_distance = distance
                                 self.end_position = value
                 pygame.draw.line(self.board.window, (255, 0, 0), self.start_position, self.end_position, 5)
-
             if direction == "D":
                 self.start_position = self.board.player.pos
                 for value in self.board.free_cells:

@@ -1,4 +1,5 @@
 import pygame
+import math
 import time
 from collections import defaultdict
 
@@ -8,7 +9,7 @@ class Enemy:
         self.player = player
         self.board = board
         self.name = name
-        self.move_counter = 1
+        self.move_counter = 2
         self.x = 607
         self.y = 324
         self.pos = (self.x, self.y)
@@ -22,6 +23,7 @@ class Enemy:
         self.three_x_exits = []
         self.four_exits = []
         self.matrix = []
+        self.matrix_copy = []
         self.adjacency_list = defaultdict(list)
         self.matrix_equivalent = {}
 
@@ -29,7 +31,8 @@ class Enemy:
         self.direction = direction
 
     def moves(self):
-        if self.move_counter % 2 == 0:
+        cost_function = round(2/math.log10(self.player.cost_speed))
+        if self.move_counter % cost_function == 0:
             if self.direction == 'L' and self.spawned is True:
                 self.x -= self.board.cell_width
                 pygame.draw.circle(self.board.window, (self.colour), (self.x, self.y), 8)
@@ -54,6 +57,7 @@ class Enemy:
         "---------------------------------------------------------------------"
 
     def create_matrix(self):
+        self.matrix = []
         for value in self.board.free_pos:
             x1 = (value[0] + 1, value[1])
             x2 = (value[0] - 1, value[1])
@@ -164,6 +168,17 @@ class Enemy:
                     x_count += 1
                     y_count += 1
 
+    def change_matrix(self):
+        self.matrix_copy = self.matrix[:]
+        for enemy in self.board.enemy:
+            row = len(self.matrix)
+            if (enemy.name != "inky") and (len(enemy.last_intersection) != 0):
+                enemy_intersection = self.board.intersections.index(enemy.last_intersection[-1])
+                for non_inf_value in range(0, row):
+                    matrix_value = self.board.inky.matrix_copy[enemy_intersection][non_inf_value]
+                    if matrix_value < 1000:
+                        self.board.inky.matrix_copy[enemy_intersection][non_inf_value] = 100
+
     def nearest_neighbour(self):
         for value in self.intersections:
             a = (value[0] + 1, value[1]) #right
@@ -231,6 +246,7 @@ class Enemy:
                 return None, None
 
     def matrix_to__list(self):
+        self.adjacency_list.clear()
         for i, value in enumerate(self.matrix, 0):
             for j, value2 in enumerate(value, 0):
                 if value2 != float("inf"):

@@ -14,7 +14,7 @@ pygame.init()
 pygame.display.set_caption("Pacman")
 screen_width = 1260
 screen_height = 744
-window = pygame.display.set_mode((screen_width, screen_height), FULLSCREEN)
+window = pygame.display.set_mode((screen_width, screen_height))
 
 
 #-----------------------------------------------Menu_State-----------------------------------------------#
@@ -137,10 +137,10 @@ class Board(object):
         self.blinky = Enemy(self, self.player, (178, 225, 120), 'R', False, "blinky")
         self.pinky = Enemy(self, self.player, (93, 5, 120), 'L', False, "pinky")
         self.clyde = Enemy(self, self.player, (154, 253, 78), 'R', False, "clyde")
-        self.enemy = [self.pinky]
+        self.enemy = [self.inky, self.pinky, self.clyde, self.blinky]
 
     def play_event(self):
-        self.clock.tick(60)
+        self.clock.tick(120)
         keys = pygame.key.get_pressed()
         if self.player.player_lives == 0:
             self.terminate = True
@@ -185,6 +185,7 @@ class Board(object):
         pygame.time.delay(150)
 
         for enemy in self.enemy:
+            enemy.change_matrix()
             if enemy.pos in self.intersections:
                 enemy.last_intersection.append(enemy.pos)
             if ((len(enemy.last_intersection) and len(self.player.last_intersection)) != 0) and (self.player.cloak is False):
@@ -225,12 +226,28 @@ class Board(object):
             else:
                 enemy.changeLocation(random.choice(['L', 'U', 'D', 'R']))
                 self.enemy_collision(enemy.direction, enemy)
+            try:
+                if (self.player.power == "laser") and (self.player.laser is True) and (enemy.spawned is True):
+                    if self.direction == "L":
+                        if (self.power.start_position[0] >= enemy.pos[0] >= self.power.end_position[0]) and (enemy.pos[1] == self.player.pos[1]):
+                            self.ghost_death(enemy)
+                    if self.direction == "R":
+                        if (self.power.start_position[0] <= enemy.pos[0] <= self.power.end_position[0]) and (enemy.pos[1] == self.player.pos[1]):
+                            self.ghost_death(enemy)
+                    if self.direction == "U":
+                        if (self.power.start_position[1] >= enemy.pos[1] >= self.power.end_position[1]) and (enemy.pos[0] == self.player.pos[0]):
+                            self.ghost_death(enemy)
+                    if self.direction == "D":
+                        if (self.power.start_position[1] <= enemy.pos[1] <= self.power.end_position[1]) and (enemy.pos[0] == self.player.pos[0]):
+                            self.ghost_death(enemy)
+            except IndexError:
+                return None
 
-            if ((self.power.end_position <= enemy.pos <= self.power.start_position) or (self.power.end_position >= enemy.pos >= self.power.start_position)) and (self.player.power != "empty"):
-                self.music.enemy_death_music()
-                enemy.x = 607
-                enemy.y = 324
-                enemy.spawned = False
+    def ghost_death(self, enemy):
+        self.music.enemy_death_music()
+        enemy.x = 607
+        enemy.y = 324
+        enemy.spawned = False
 
     def searching_location(self, enemy, cords, cords_next):
         if (cords or cords_next) is not None:
