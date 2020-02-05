@@ -17,6 +17,7 @@ class Items(object):
         self.end_position = ()
 
     def spawn(self):
+        self.colours = [invisibility, laser]
         for name in self.name_power_ups:
             location = random.choice(self.board.free_cells)
             self.power_ups[name] = location
@@ -48,6 +49,10 @@ class Items(object):
         for index, name in enumerate(self.power_ups):
             game_location = (self.power_ups[name])
             if self.board.player.pos == game_location:
+                if name == "invisibility":
+                    self.colours.remove(invisibility)
+                if name == "laser":
+                    self.colours.remove(laser)
                 del self.power_ups[name]
                 break
 

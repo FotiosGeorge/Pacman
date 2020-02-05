@@ -137,7 +137,7 @@ class Board(object):
         self.blinky = Enemy(self, self.player, (178, 225, 120), 'R', False, "blinky")
         self.pinky = Enemy(self, self.player, (93, 5, 120), 'L', False, "pinky")
         self.clyde = Enemy(self, self.player, (154, 253, 78), 'R', False, "clyde")
-        self.enemy = [self.inky, self.pinky]
+        self.enemy = [self.inky]
 
     def play_event(self):
         self.clock.tick(120)
@@ -185,7 +185,6 @@ class Board(object):
         pygame.time.delay(150)
 
         for enemy in self.enemy:
-
             for other_enemy in self.enemy:
                 if (enemy.pos[0] + 45 == other_enemy.pos[0]) and (enemy.pos[1] == other_enemy.pos[1]):
                     enemy.direction = "L"
@@ -244,16 +243,16 @@ class Board(object):
             try:
                 if (self.player.power == "laser") and (self.player.laser is True) and (enemy.spawned is True):
                     if self.direction == "L":
-                        if (self.power.start_position[0] >= enemy.pos[0] >= self.power.end_position[0]) and (enemy.pos[1] == self.player.pos[1]):
+                        if (self.power.start_position[0] >= enemy.x >= self.power.end_position[0]) and (enemy.y == self.player.y):
                             self.ghost_death(enemy)
                     if self.direction == "R":
-                        if (self.power.start_position[0] <= enemy.pos[0] <= self.power.end_position[0]) and (enemy.pos[1] == self.player.pos[1]):
+                        if (self.power.start_position[0] <= enemy.x <= self.power.end_position[0]) and (enemy.y == self.player.y):
                             self.ghost_death(enemy)
                     if self.direction == "U":
-                        if (self.power.start_position[1] >= enemy.pos[1] >= self.power.end_position[1]) and (enemy.pos[0] == self.player.pos[0]):
+                        if (self.power.start_position[1] <= enemy.y <= self.power.end_position[1]) and (enemy.x == self.player.x):
                             self.ghost_death(enemy)
                     if self.direction == "D":
-                        if (self.power.start_position[1] <= enemy.pos[1] <= self.power.end_position[1]) and (enemy.pos[0] == self.player.pos[0]):
+                        if (self.power.start_position[1] >= enemy.y >= self.power.end_position[1]) and (enemy.x == self.player.x):
                             self.ghost_death(enemy)
             except IndexError:
                 return None
