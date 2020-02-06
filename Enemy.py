@@ -49,7 +49,6 @@ class Enemy:
             self.pos = (self.x, self.y)
             self.move_counter += 1
         else:
-            print(self.move_counter)
             self.move_counter += 1
 
     def update(self):

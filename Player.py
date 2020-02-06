@@ -3,8 +3,9 @@ from Powerup import *
 
 
 class Player(object):
-    def __init__(self, board):
+    def __init__(self, board, name):
         self.board = board
+        self.name = name
         self.power = "empty"
         self.x = 607
         self.y = 420
@@ -26,32 +27,11 @@ class Player(object):
 
     def draw(self):
         pygame.draw.circle(self.board.window, (255, 255, 0), (self.x, self.y), 8)
-
-    def score_system(self):
-        score_font = pygame.font.Font(None, 50)
-        score_surf = score_font.render(str(self.score), 1, (255, 255, 255))
-        score_pos = [3 * self.board.cell_width, 13 * self.board.cell_height]
-        self.board.window.blit(score_surf, score_pos)
-
-    def lives_system(self):
-        lives_font = pygame.font.Font(None, 50)
-        lives_surf = lives_font.render(str(self.player_lives), 1, (255, 255, 255))
-        lives_pos = [3 * self.board.cell_width, 17 * self.board.cell_height]
-        self.board.window.blit(lives_surf, lives_pos)
-
-    def update(self):
-        score_font = pygame.font.Font(None, 50)
-        score_surf = score_font.render("Score", 1, (255, 255, 255))
-        score_pos = [2 * self.board.cell_width, 11.5 * self.board.cell_height]
-        lives_font = pygame.font.Font(None, 50)
-        lives_surf = lives_font.render("Lives", 1, (255, 255, 255))
-        lives_pos = [2 * self.board.cell_width, 15.5 * self.board.cell_height]
-        self.board.window.blit(lives_surf, lives_pos)
-        self.board.window.blit(score_surf, score_pos)
-
         for tup2 in self.board.dots:
             if (tup2[0] == self.x) and (tup2[1] == self.y):
-                if self.music_count % 4 == 0:
+                if self.music_count % 4 == 0 and self.board.state == "Single":
+                    self.board.music.eating_music()
+                elif self.music_count % 12 == 0 and self.board.state == "Multiplayer":
                     self.board.music.eating_music()
                 self.board.dots.remove(tup2)
                 self.score += 1
@@ -73,3 +53,47 @@ class Player(object):
         if self.score % 100 == 0:
             if self.cost_speed <= 30:
                 self.cost_speed += 1
+
+    def score_system(self):
+        if self.name == "Player1":
+            score_font = pygame.font.Font(None, 50)
+            score_surf = score_font.render(str(self.score), 1, (255, 255, 255))
+            score_pos = [3 * self.board.cell_width, 13 * self.board.cell_height]
+            self.board.window.blit(score_surf, score_pos)
+        if self.name == "Player2":
+            score_font = pygame.font.Font(None, 50)
+            score_surf = score_font.render(str(self.score), 1, (255, 255, 255))
+            score_pos = [24 * self.board.cell_width, 13 * self.board.cell_height]
+            self.board.window.blit(score_surf, score_pos)
+
+    def lives_system(self):
+        if self.name == "Player1":
+            lives_font = pygame.font.Font(None, 50)
+            lives_surf = lives_font.render(str(self.player_lives), 1, (255, 255, 255))
+            lives_pos = [3 * self.board.cell_width, 17 * self.board.cell_height]
+            self.board.window.blit(lives_surf, lives_pos)
+        if self.name == "Player2":
+            lives_font = pygame.font.Font(None, 50)
+            lives_surf = lives_font.render(str(self.player_lives), 1, (255, 255, 255))
+            lives_pos = [24 * self.board.cell_width, 17 * self.board.cell_height]
+            self.board.window.blit(lives_surf, lives_pos)
+
+    def update(self):
+        if self.name == "Player1":
+            score_font = pygame.font.Font(None, 50)
+            score_surf = score_font.render("Score", 1, (255, 255, 255))
+            score_pos = [2 * self.board.cell_width, 11.5 * self.board.cell_height]
+            lives_font = pygame.font.Font(None, 50)
+            lives_surf = lives_font.render("Lives", 1, (255, 255, 255))
+            lives_pos = [2 * self.board.cell_width, 15.5 * self.board.cell_height]
+            self.board.window.blit(lives_surf, lives_pos)
+            self.board.window.blit(score_surf, score_pos)
+        if self.name == "Player2":
+            score_font = pygame.font.Font(None, 50)
+            score_surf = score_font.render("Score", 1, (255, 255, 255))
+            score_pos = [24 * self.board.cell_width, 11.5 * self.board.cell_height]
+            lives_font = pygame.font.Font(None, 50)
+            lives_surf = lives_font.render("Lives", 1, (255, 255, 255))
+            lives_pos = [24 * self.board.cell_width, 15.5 * self.board.cell_height]
+            self.board.window.blit(lives_surf, lives_pos)
+            self.board.window.blit(score_surf, score_pos)

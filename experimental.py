@@ -9,12 +9,15 @@ if __name__ == '__main__':
 
     menu = Menu(False)
     board = Board(False)
+    multi_board = MultiBoard(False)
 
     def load(state):
         if state == "Menu":
             menu.load()
         if state == "Play":
             board.load()
+        if state == "Two_Play":
+            multi_board.multi_load()
 
     def game_loop(state, terminate):
         create_count = 0
@@ -29,6 +32,9 @@ if __name__ == '__main__':
             if menu.menu_event() == "Play":
                 state = "Play"
                 load("Play")
+            if menu.menu_event() == "Two_Play":
+                state = "Two_Play"
+                load("Two_Play")
             if menu.terminate:
                 terminate = True
         while not terminate and state == "Play":
@@ -41,6 +47,12 @@ if __name__ == '__main__':
             board.play_update()
             create_count += 1
             if board.terminate:
+                terminate = True
+        while not terminate and state == "Two_Play":
+            multi_board.two_play_event()
+            multi_board.multi_play_draw()
+            multi_board.multi_play_update()
+            if multi_board.terminate:
                 terminate = True
         pygame.quit()
 

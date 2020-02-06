@@ -49,6 +49,9 @@ class Menu(object):
                 if self.button_collisions(mouse_pos) and self.button_count == 0:
                     self.state = "Play"
                     return self.state
+                if self.button_collisions(mouse_pos) and self.button_count == 1:
+                    self.state = "Two_Play"
+                    return self.state
                 elif self.button_collisions(mouse_pos) and self.button_count == 4:
                     self.terminate = True
 
@@ -117,6 +120,7 @@ class Board(object):
         self.x_coord = 0
         self.y_coord = 0
         self.direction = " "
+        self.state = "Single"
         self.walls = []
         self.walls_pos = []
         self.free_cells = []
@@ -131,13 +135,14 @@ class Board(object):
         ########Initialization###########
         self.music = Music(self)
         self.power = Items(self)
-        self.player = Player(self)
+        self.player = Player(self, "Player1")
         self.intersections = []
         self.inky = Enemy(self, self.player, (178, 225, 255), 'L', False, "inky")
         self.blinky = Enemy(self, self.player, (178, 225, 120), 'R', False, "blinky")
         self.pinky = Enemy(self, self.player, (93, 5, 120), 'L', False, "pinky")
         self.clyde = Enemy(self, self.player, (154, 253, 78), 'R', False, "clyde")
-        self.enemy = [self.inky]
+        self.players = [self.player]
+        self.enemy = []
 
     def play_event(self):
         self.clock.tick(120)
@@ -242,18 +247,14 @@ class Board(object):
                 self.enemy_collision(enemy.direction, enemy)
             try:
                 if (self.player.power == "laser") and (self.player.laser is True) and (enemy.spawned is True):
-                    if self.direction == "L":
-                        if (self.power.start_position[0] >= enemy.x >= self.power.end_position[0]) and (enemy.y == self.player.y):
-                            self.ghost_death(enemy)
-                    if self.direction == "R":
-                        if (self.power.start_position[0] <= enemy.x <= self.power.end_position[0]) and (enemy.y == self.player.y):
-                            self.ghost_death(enemy)
-                    if self.direction == "U":
-                        if (self.power.start_position[1] <= enemy.y <= self.power.end_position[1]) and (enemy.x == self.player.x):
-                            self.ghost_death(enemy)
-                    if self.direction == "D":
-                        if (self.power.start_position[1] >= enemy.y >= self.power.end_position[1]) and (enemy.x == self.player.x):
-                            self.ghost_death(enemy)
+                    if (self.direction == "L") or (self.direction == "R"):
+                        if (self.power.start_position[0] >= enemy.x >= self.power.end_position[0]) or (self.power.start_position[0] <= enemy.x <= self.power.end_position[0]):
+                            if enemy.y == self.player.y:
+                                self.ghost_death(enemy)
+                    if (self.direction == "D") or (self.direction == "U"):
+                        if (self.power.start_position[1] >= enemy.y >= self.power.end_position[1]) or (self.power.start_position[1] <= enemy.y <= self.power.end_position[1]):
+                            if enemy.x == self.player.x:
+                                self.ghost_death(enemy)
             except IndexError:
                 return None
 
@@ -410,3 +411,84 @@ class Board(object):
         self.cells()
         self.power.spawn()
         pygame.display.update()
+
+
+class MultiBoard(Board):
+    def __init__(self, terminate):
+        super().__init__(terminate)
+        self.player_two = Player(self, "Player2")
+
+    def two_play_event(self):
+        self.clock.tick(120)
+        keys = pygame.key.get_pressed()
+        if self.player.player_lives == 0:
+            self.terminate = True
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or (self.terminate is True):
+                self.terminate = True
+            if event.type == pygame.KEYDOWN:
+                if event.key == K_ESCAPE:
+                    self.terminate = True
+
+        self.player_collision()
+        self.two_player_collision()
+
+    def multi_play_update(self):
+        self.player.update()
+        self.player_two.update()
+        pygame.display.update()
+
+    def multi_play_draw(self):
+        self.window.fill((0, 0, 0))
+        self.window.blit(self.background, (0, 0))
+        """self.draw_grid()"""
+        self.draw_pops()
+        self.player.draw()
+        self.player_two.draw()
+
+    def multi_player_spawn(self):
+        self.state = "Multiplayer"
+        self.players.append(self.player_two)
+        for player in self.players:
+            if player == self.player:
+                player.x = 1192
+                player.y = 36
+            if player == self.player_two:
+                player.x = 67
+                player.y = 708
+
+    def two_player_collision(self):
+        keys = pygame.key.get_pressed()
+        if keys[K_a]:
+            for tup in self.free_cells:
+                if (tup[0] == self.player_two.x - self.cell_width) and (tup[1] == self.player_two.y):
+                    self.player_two.movement(-self.cell_width, 0)
+                    self.direction = "L"
+                    return None
+        if keys[K_d]:
+            for tup in self.free_cells:
+                if (tup[0] == self.player_two.x + self.cell_width) and (tup[1] == self.player_two.y):
+                    self.player_two.movement(self.cell_width, 0)
+                    self.direction = "R"
+                    return None
+        if keys[K_w]:
+            for tup in self.free_cells:
+                if (tup[0] == self.player_two.x) and (tup[1] == self.player_two.y - self.cell_height):
+                    self.player_two.movement(0, -self.cell_height)
+                    self.direction = "U"
+                    return None
+        if keys[K_s]:
+            for tup in self.free_cells:
+                if (tup[0] == self.player_two.x) and (tup[1] == self.player_two.y + self.cell_height):
+                    self.player_two.movement(0, self.cell_height)
+                    self.direction = "D"
+                    return None
+
+    def multi_load(self):
+        self.background = pygame.image.load("Maze.png")
+        self.background = pygame.transform.smoothscale(self.background, (screen_width, screen_height))
+        self.window.blit(self.background, (0, 0))
+        self.cells()
+        self.multi_player_spawn()
+        pygame.display.update()
+
