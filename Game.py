@@ -14,7 +14,7 @@ pygame.init()
 pygame.display.set_caption("Pacman")
 screen_width = 1260
 screen_height = 744
-window = pygame.display.set_mode((screen_width, screen_height))
+window = pygame.display.set_mode((screen_width, screen_height), FULLSCREEN)
 
 
 #-----------------------------------------------Menu_State-----------------------------------------------#
@@ -194,19 +194,19 @@ class Board(object):
         pygame.time.delay(120)
 
         for enemy in self.enemy:
-            for other_enemy in self.enemy:
-                if (enemy.pos[0] + 45 == other_enemy.pos[0]) and (enemy.pos[1] == other_enemy.pos[1]):
-                    enemy.direction = "L"
-                    self.enemy_collision(enemy.direction, enemy)
-                if (enemy.pos[0] - 45 == other_enemy.pos[0]) and (enemy.pos[1] == other_enemy.pos[1]):
-                    enemy.direction = "R"
-                    self.enemy_collision(enemy.direction, enemy)
-                if (enemy.pos[1] + 24 == other_enemy.pos[1]) and (enemy.pos[0] == other_enemy.pos[0]):
-                    enemy.direction = "U"
-                    self.enemy_collision(enemy.direction, enemy)
-                if (enemy.pos[1] - 24 == other_enemy.pos[1]) and (enemy.pos[0] == other_enemy.pos[0]):
-                    enemy.direction = "D"
-                    self.enemy_collision(enemy.direction, enemy)
+            #for other_enemy in self.enemy:
+                #if (enemy.pos[0] + 45 == other_enemy.pos[0]) and (enemy.pos[1] == other_enemy.pos[1]):
+                    #enemy.direction = "L"
+                    #self.enemy_collision(enemy.direction, enemy)
+                #if (enemy.pos[0] - 45 == other_enemy.pos[0]) and (enemy.pos[1] == other_enemy.pos[1]):
+                    #enemy.direction = "R"
+                    #self.enemy_collision(enemy.direction, enemy)
+                #if (enemy.pos[1] + 24 == other_enemy.pos[1]) and (enemy.pos[0] == other_enemy.pos[0]):
+                    #enemy.direction = "U"
+                    #self.enemy_collision(enemy.direction, enemy)
+                #if (enemy.pos[1] - 24 == other_enemy.pos[1]) and (enemy.pos[0] == other_enemy.pos[0]):
+                    #enemy.direction = "D"
+                    #self.enemy_collision(enemy.direction, enemy)
 
             enemy.change_matrix()
             if enemy.pos in self.intersections:
@@ -515,6 +515,7 @@ class MultiBoard(Board):
                     x_cord_one = tile[0] - self.offset_width
                     y_cord_one = tile[1] - self.offset_height
                     pygame.draw.rect(self.window, (255, 128, 0), (x_cord_one, y_cord_one, self.cell_width, self.cell_height), 0)
+                    self.dots.remove(tile[0], tile[1])
         pygame.display.update()
 
     def check_player_location(self):
