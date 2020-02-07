@@ -52,7 +52,10 @@ class Menu(object):
                 if self.button_collisions(mouse_pos) and self.button_count == 1:
                     self.state = "Two_Play"
                     return self.state
-                elif self.button_collisions(mouse_pos) and self.button_count == 4:
+                if self.button_collisions(mouse_pos) and self.button_count == 3:
+                    self.state = "Settings"
+                    return self.state
+                if self.button_collisions(mouse_pos) and self.button_count == 4:
                     self.terminate = True
 
             if event.type == pygame.QUIT or (self.terminate == True):
@@ -142,7 +145,7 @@ class Board(object):
         self.pinky = Enemy(self, self.player, (93, 5, 120), 'L', False, "pinky")
         self.clyde = Enemy(self, self.player, (154, 253, 78), 'R', False, "clyde")
         self.players = [self.player]
-        self.enemy = []
+        self.enemy = [self.inky, self.pinky, self.blinky, self.clyde]
 
     def play_event(self):
         self.clock.tick(120)
@@ -165,6 +168,7 @@ class Board(object):
         self.check_timer()
         self.power.check_items()
         self.power.check_power_count()
+        self.player.immunity()
         self.inky.update()
         self.blinky.update()
         self.pinky.update()
@@ -187,7 +191,7 @@ class Board(object):
         self.enemy_moves()
 
     def enemy_moves(self):
-        pygame.time.delay(150)
+        pygame.time.delay(120)
 
         for enemy in self.enemy:
             for other_enemy in self.enemy:
@@ -417,11 +421,17 @@ class MultiBoard(Board):
     def __init__(self, terminate):
         super().__init__(terminate)
         self.player_two = Player(self, "Player2")
+        self.winner = " "
+        self.tile_list = []
+        self.tile_counter = 1
 
     def two_play_event(self):
         self.clock.tick(120)
+        pygame.time.delay(120)
         keys = pygame.key.get_pressed()
         if self.player.player_lives == 0:
+            self.terminate = True
+        if self.player_two.player_lives == 0:
             self.terminate = True
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (self.terminate is True):
@@ -429,11 +439,20 @@ class MultiBoard(Board):
             if event.type == pygame.KEYDOWN:
                 if event.key == K_ESCAPE:
                     self.terminate = True
-
+        self.check_winner()
         self.player_collision()
         self.two_player_collision()
 
+    def check_winner(self):
+        for player in self.players:
+            if player.score >= 1000:
+                self.winner = player.name
+                break
+
     def multi_play_update(self):
+        self.check_player_location()
+        self.player.immunity()
+        self.player_two.immunity()
         self.player.update()
         self.player_two.update()
         pygame.display.update()
@@ -445,6 +464,7 @@ class MultiBoard(Board):
         self.draw_pops()
         self.player.draw()
         self.player_two.draw()
+        self.multi_player_map_spawn()
 
     def multi_player_spawn(self):
         self.state = "Multiplayer"
@@ -484,6 +504,35 @@ class MultiBoard(Board):
                     self.direction = "D"
                     return None
 
+    def multi_player_map_spawn(self):
+        if self.tile_counter % 30 == 0:
+            tile = random.choice(self.free_cells)
+            self.tile_list.append(tile)
+        self.tile_counter += 1
+        for tile in self.tile_list:
+            for player in self.players:
+                if (player.pos != tile) and (tile in self.free_cells):
+                    x_cord_one = tile[0] - self.offset_width
+                    y_cord_one = tile[1] - self.offset_height
+                    pygame.draw.rect(self.window, (255, 128, 0), (x_cord_one, y_cord_one, self.cell_width, self.cell_height), 0)
+        pygame.display.update()
+
+    def check_player_location(self):
+        for player in self.players:
+            new_spawn = random.choice(self.free_cells)
+            if new_spawn not in self.tile_list:
+                if (player.pos in self.tile_list) and (player.immune is False):
+                    self.music.death_music()
+                    player.player_lives -= 1
+                    if player.score >= 100:
+                        player.score -= 100
+                    else:
+                        player.score -= player.score
+                    player.x = new_spawn[0]
+                    player.y = new_spawn[1]
+                    player.pos = new_spawn
+                    player.immune = True
+
     def multi_load(self):
         self.background = pygame.image.load("Maze.png")
         self.background = pygame.transform.smoothscale(self.background, (screen_width, screen_height))
@@ -492,3 +541,34 @@ class MultiBoard(Board):
         self.multi_player_spawn()
         pygame.display.update()
 
+
+class Settings:
+    def __init__(self, terminate):
+        self.terminate = terminate
+        self.window = window
+        self.state = "Setting"
+        self.clock = pygame.time.Clock()
+        self.button_list = [(155, 152), (155, 512), (155, 632)]
+
+    def settings_events(self):
+        self.clock.tick(60)
+        pygame.time.delay(120)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or (self.terminate is True):
+                self.terminate = True
+            if event.type == pygame.KEYDOWN:
+                if event.key == K_ESCAPE:
+                    self.terminate = True
+
+    def settings_draw(self):
+        for button in self.button_list:
+            pygame.draw.rect(self.window, (0, 0, 255), (button[0], button[1], 200, 100), 0)
+
+    def settings_update(self):
+        pygame.display.update()
+
+    def load(self):
+        self.background = pygame.image.load("Settings.jpg")
+        self.background = pygame.transform.smoothscale(self.background, (screen_width, screen_height))
+        self.window.blit(self.background, (0, 0))
+        pygame.display.update()

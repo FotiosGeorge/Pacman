@@ -10,6 +10,7 @@ if __name__ == '__main__':
     menu = Menu(False)
     board = Board(False)
     multi_board = MultiBoard(False)
+    setting = Settings(False)
 
     def load(state):
         if state == "Menu":
@@ -18,6 +19,8 @@ if __name__ == '__main__':
             board.load()
         if state == "Two_Play":
             multi_board.multi_load()
+        if state == "Settings":
+            setting.load()
 
     def game_loop(state, terminate):
         create_count = 0
@@ -35,6 +38,9 @@ if __name__ == '__main__':
             if menu.menu_event() == "Two_Play":
                 state = "Two_Play"
                 load("Two_Play")
+            if menu.menu_event() == "Settings":
+                state = "Settings"
+                load("Settings")
             if menu.terminate:
                 terminate = True
         while not terminate and state == "Play":
@@ -53,6 +59,12 @@ if __name__ == '__main__':
             multi_board.multi_play_draw()
             multi_board.multi_play_update()
             if multi_board.terminate:
+                terminate = True
+        while not terminate and state == "Settings":
+            setting.settings_events()
+            setting.settings_draw()
+            setting.settings_update()
+            if setting.terminate:
                 terminate = True
         pygame.quit()
 
