@@ -20,31 +20,7 @@ class Player(object):
         self.cloak = False
         self.laser = False
 
-    def movement(self, x, y):
-        if self.pos in self.board.intersections:
-            self.last_intersection.append(self.pos)
-        self.x += x
-        self.y += y
-        self.pos = (self.x, self.y)
-
-    def draw(self):
-        if self.board.state == "Single":
-            pygame.draw.circle(self.board.window, (255, 255, 0), (self.x, self.y), 8)
-        if (self.board.state == "Multiplayer") and (self.name == "Player1"):
-            pygame.draw.circle(self.board.window, (255, 0, 0), (self.x, self.y), 8)
-        if (self.board.state == "Multiplayer") and (self.name == "Player2"):
-            pygame.draw.circle(self.board.window, (0, 0, 255), (self.x, self.y), 8)
-        for tup2 in self.board.dots:
-            if (tup2[0] == self.x) and (tup2[1] == self.y):
-                if self.music_count % 4 == 0:
-                    self.board.music.eating_music()
-                self.board.dots.remove(tup2)
-                self.score += 1
-                self.score_system()
-                self.music_count += 1
-                break
-        self.score_system()
-
+    def check_death(self):
         for tup2 in self.board.enemy:
             if (tup2.x == self.x) and (tup2.y == self.y) and (self.immune is False):
                 self.board.music.death_music()
@@ -55,6 +31,37 @@ class Player(object):
                 self.immune = True
                 break
         self.lives_system()
+
+    def movement(self, x, y):
+        if self.pos in self.board.intersections:
+            self.last_intersection.append(self.pos)
+        self.x += x
+        self.y += y
+        self.pos = (self.x, self.y)
+
+    def draw(self):
+        if (self.board.state == "Single") and (self.cloak is False) and (self.laser is False):
+            pygame.draw.circle(self.board.window, (255, 255, 0), (self.x, self.y), 8)
+        elif (self.board.state == "Single") and (self.cloak is True):
+            pygame.draw.circle(self.board.window, (255, 0, 0), (self.x, self.y), 8)
+        elif (self.board.state == "Single") and (self.laser is True):
+            pygame.draw.circle(self.board.window, (255, 0, 0), (self.x, self.y), 8)
+
+        if (self.board.state == "Multiplayer") and (self.name == "Player1"):
+            pygame.draw.circle(self.board.window, (255, 0, 0), (self.x, self.y), 8)
+        if (self.board.state == "Multiplayer") and (self.name == "Player2"):
+            pygame.draw.circle(self.board.window, (0, 0, 255), (self.x, self.y), 8)
+
+        for tup2 in self.board.dots:
+            if (tup2[0] == self.x) and (tup2[1] == self.y):
+                if self.music_count % 4 == 0:
+                    self.board.music.eating_music()
+                self.board.dots.remove(tup2)
+                self.score += 1
+                self.score_system()
+                self.music_count += 1
+                break
+        self.score_system()
 
         if self.score % 100 == 0:
             if self.cost_speed <= 30:
@@ -99,6 +106,11 @@ class Player(object):
         lives_pos = [value * self.board.cell_width, 15.5 * self.board.cell_height]
         self.board.window.blit(lives_surf, lives_pos)
         self.board.window.blit(score_surf, score_pos)
+        if self.name == "Player1":
+            power_font = pygame.font.Font(None, 50)
+            power_surf = power_font.render(self.power, 1, (255, 255, 255))
+            power_pos = [24 * self.board.cell_width, 11.5 * self.board.cell_height]
+            self.board.window.blit(power_surf, power_pos)
 
     def immunity(self):
         if self.immunity_count % 50 == 0:

@@ -33,7 +33,6 @@ class Menu(object):
 
     def menu_event(self):
         self.clock.tick(60)
-        pygame.time.delay(30)
         for event in pygame.event.get():
             mouse_pos = pygame.mouse.get_pos()
 
@@ -58,7 +57,7 @@ class Menu(object):
                 if self.button_collisions(mouse_pos) and self.button_count == 4:
                     self.terminate = True
 
-            if event.type == pygame.QUIT or (self.terminate == True):
+            if event.type == pygame.QUIT or (self.terminate is True):
                 self.terminate = True
 
             if event.type == pygame.KEYDOWN:
@@ -138,6 +137,7 @@ class Board(object):
         ########Initialization###########
         self.music = Music(self)
         self.power = Items(self)
+        self.setting = Settings(terminate)
         self.player = Player(self, "Player1")
         self.intersections = []
         self.inky = Enemy(self, self.player, (178, 225, 255), 'L', False, "inky")
@@ -182,32 +182,38 @@ class Board(object):
         self.draw_pops()
         self.power.draw_items()
         self.player.draw()
+        self.player.check_death()
         if self.check_timer():
             for enemy in self.enemy:
                 if enemy.spawned is False:
                     enemy.spawned = True
                     enemy.y = 276
                     break
+        self.check_enemy_location()
         self.enemy_moves()
+        self.check_enemy_location()
+
+    def check_enemy_location(self):
+        for enemy in self.enemy:
+            for other_enemy in self.enemy:
+                if (enemy.pos[0] + 45 == other_enemy.pos[0]) and (enemy.pos[1] == other_enemy.pos[1]):
+                    enemy.direction = "L"
+                    self.enemy_collision(enemy.direction, enemy)
+                if (enemy.pos[0] - 45 == other_enemy.pos[0]) and (enemy.pos[1] == other_enemy.pos[1]):
+                    enemy.direction = "R"
+                    self.enemy_collision(enemy.direction, enemy)
+                if (enemy.pos[1] + 24 == other_enemy.pos[1]) and (enemy.pos[0] == other_enemy.pos[0]):
+                    enemy.direction = "U"
+                    self.enemy_collision(enemy.direction, enemy)
+                if (enemy.pos[1] - 24 == other_enemy.pos[1]) and (enemy.pos[0] == other_enemy.pos[0]):
+                    enemy.direction = "D"
+                    self.enemy_collision(enemy.direction, enemy)
 
     def enemy_moves(self):
         pygame.time.delay(120)
 
         for enemy in self.enemy:
-            #for other_enemy in self.enemy:
-                #if (enemy.pos[0] + 45 == other_enemy.pos[0]) and (enemy.pos[1] == other_enemy.pos[1]):
-                    #enemy.direction = "L"
-                    #self.enemy_collision(enemy.direction, enemy)
-                #if (enemy.pos[0] - 45 == other_enemy.pos[0]) and (enemy.pos[1] == other_enemy.pos[1]):
-                    #enemy.direction = "R"
-                    #self.enemy_collision(enemy.direction, enemy)
-                #if (enemy.pos[1] + 24 == other_enemy.pos[1]) and (enemy.pos[0] == other_enemy.pos[0]):
-                    #enemy.direction = "U"
-                    #self.enemy_collision(enemy.direction, enemy)
-                #if (enemy.pos[1] - 24 == other_enemy.pos[1]) and (enemy.pos[0] == other_enemy.pos[0]):
-                    #enemy.direction = "D"
-                    #self.enemy_collision(enemy.direction, enemy)
-
+            enemy.enemy_difficulty()
             enemy.change_matrix()
             if enemy.pos in self.intersections:
                 enemy.last_intersection.append(enemy.pos)
@@ -244,11 +250,13 @@ class Board(object):
                         enemy.changeLocation(random.choice(['L', 'U', 'D', 'R']))
                         self.enemy_collision(enemy.direction, enemy)
                     else:
+                        enemy.changeLocation(random.choice(['L', 'U', 'D', 'R']))
                         self.enemy_collision(enemy.direction, enemy)
 
             else:
                 enemy.changeLocation(random.choice(['L', 'U', 'D', 'R']))
                 self.enemy_collision(enemy.direction, enemy)
+
             try:
                 if (self.player.power == "laser") and (self.player.laser is True) and (enemy.spawned is True):
                     if (self.direction == "L") or (self.direction == "R"):
@@ -464,6 +472,8 @@ class MultiBoard(Board):
         self.draw_pops()
         self.player.draw()
         self.player_two.draw()
+        self.player.check_death()
+        self.player_two.check_death()
         self.multi_player_map_spawn()
 
     def multi_player_spawn(self):
@@ -508,6 +518,9 @@ class MultiBoard(Board):
         if self.tile_counter % 30 == 0:
             tile = random.choice(self.free_cells)
             self.tile_list.append(tile)
+        if self.tile_counter % 900 == 0:
+            self.tile_list.clear()
+            self.cells()
         self.tile_counter += 1
         for tile in self.tile_list:
             for player in self.players:
@@ -515,7 +528,8 @@ class MultiBoard(Board):
                     x_cord_one = tile[0] - self.offset_width
                     y_cord_one = tile[1] - self.offset_height
                     pygame.draw.rect(self.window, (255, 128, 0), (x_cord_one, y_cord_one, self.cell_width, self.cell_height), 0)
-                    self.dots.remove(tile[0], tile[1])
+                    if (len(self.tile_list) != 0) and (tile in self.dots):
+                        self.dots.remove(tile)
         pygame.display.update()
 
     def check_player_location(self):
@@ -547,23 +561,71 @@ class Settings:
     def __init__(self, terminate):
         self.terminate = terminate
         self.window = window
-        self.state = "Setting"
+        self.state = "Settings"
+        self.difficulty_count = 0
         self.clock = pygame.time.Clock()
         self.button_list = [(155, 152), (155, 512), (155, 632)]
 
     def settings_events(self):
         self.clock.tick(60)
-        pygame.time.delay(120)
+        mouse_pos = pygame.mouse.get_pos()
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (self.terminate is True):
                 self.terminate = True
             if event.type == pygame.KEYDOWN:
                 if event.key == K_ESCAPE:
                     self.terminate = True
+            if event.type == pygame.MOUSEMOTION:
+                if self.settings_button_collision(mouse_pos):
+                    pygame.display.update()
+                else:
+                    self.settings_draw()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.settings_button_collision(mouse_pos) and self.button_count == 0:
+                    self.select_difficulty()
+
+    def select_difficulty(self):
+        if self.difficulty_count == 0:
+            self.difficulty_count += 1
+            self.display_difficulty("Medium")
+        elif self.difficulty_count == 1:
+            self.difficulty_count += 1
+            self.display_difficulty("Hard")
+        elif self.difficulty_count == 2:
+            self.difficulty_count = 0
+            self.display_difficulty("Easy")
+
+    def display_difficulty(self, text):
+        button_font = pygame.font.Font(None, 33)
+        button_surf = button_font.render(text, 1, (255, 0, 0))
+        button_pos = [13 * 45, 1 * 24]
+        self.window.blit(button_surf, button_pos)
+        pygame.display.update()
+        pygame.time.delay(210)
+
+    def settings_button_collision(self, mouse_pos):
+        self.button_count = -1
+        for pos in self.button_list:
+            self.button_count += 1
+            if (mouse_pos[0] > pos[0]) and (mouse_pos[0] < (pos[0] + 200)):
+                if (mouse_pos[1] > pos[1]) and (mouse_pos[1] < (pos[1] + 100)):
+                    return True
 
     def settings_draw(self):
+        self.window.fill((0, 0, 0))
+        self.window.blit(self.background, (0, 0))
+
         for button in self.button_list:
             pygame.draw.rect(self.window, (0, 0, 255), (button[0], button[1], 200, 100), 0)
+        display_list = ["Difficulty", " ", " ", "Music", "Exit"]
+        height = 8
+        for display in display_list:
+            button_font = pygame.font.Font(None, 33)
+            button_surf = button_font.render(display, 1, (255, 0, 0))
+            button_pos = [3.7 * 45, height * 24]
+            height += 5
+            self.window.blit(button_surf, button_pos)
 
     def settings_update(self):
         pygame.display.update()

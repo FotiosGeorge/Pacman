@@ -10,6 +10,7 @@ class Enemy:
         self.board = board
         self.name = name
         self.move_counter = 2
+        self.move_difficulty = 0
         self.x = 607
         self.y = 324
         self.pos = (self.x, self.y)
@@ -31,8 +32,16 @@ class Enemy:
     def changeLocation(self, direction):
         self.direction = direction
 
+    def enemy_difficulty(self):
+        if self.board.setting.difficulty_count == 0:
+            self.move_difficulty = 5
+        elif self.board.setting.difficulty_count == 1:
+            self.move_difficulty = 3
+        elif self.board.setting.difficulty_count == 2:
+            self.move_difficulty = 2
+
     def moves(self):
-        cost_function = round(2/math.log10(self.player.cost_speed))
+        cost_function = round(self.move_difficulty/math.log10(self.player.cost_speed))
         if self.move_counter % cost_function == 0:
             if self.direction == 'L' and self.spawned is True:
                 self.x -= self.board.cell_width
