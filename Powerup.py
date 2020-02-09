@@ -159,3 +159,12 @@ class Items(object):
             self.activate_laser()
         if self.board.player.power == "invisibility":
             self.activate_invisibility()
+
+    def power_reset(self):
+        self.name_power_ups = ["invisibility", "laser"]
+        self.carry_item = False
+        self.power_ups = {}
+        self.colours = [invisibility, laser]
+        self.collect_power = []
+        self.start_position = ()
+        self.end_position = ()

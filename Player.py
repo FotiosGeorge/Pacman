@@ -106,7 +106,7 @@ class Player(object):
         lives_pos = [value * self.board.cell_width, 15.5 * self.board.cell_height]
         self.board.window.blit(lives_surf, lives_pos)
         self.board.window.blit(score_surf, score_pos)
-        if self.name == "Player1":
+        if (self.name == "Player1") and (self.board.state == "Single"):
             power_font = pygame.font.Font(None, 50)
             power_surf = power_font.render(self.power, 1, (255, 255, 255))
             power_pos = [24 * self.board.cell_width, 11.5 * self.board.cell_height]
@@ -117,3 +117,18 @@ class Player(object):
             self.immune = False
         elif self.immune is True:
             self.immunity_count += 1
+
+    def player_reset(self):
+        self.power = "empty"
+        self.immune = False
+        self.immunity_count = 1
+        self.x = 607
+        self.y = 420
+        self.pos = [(self.x, self.y)]
+        self.music_count = 0
+        self.score = 0
+        self.player_lives = 3
+        self.cost_speed = 2
+        self.last_intersection = []
+        self.cloak = False
+        self.laser = False

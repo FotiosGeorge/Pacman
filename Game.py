@@ -28,11 +28,8 @@ class Menu(object):
         self.clock = pygame.time.Clock()
         self.button_list = [(155, 152), (155, 272), (155, 392), (155, 512), (155, 632)]
 
-    def __del__(self):
-        print("You have exited main menu")
-
     def menu_event(self):
-        self.clock.tick(60)
+        self.clock.tick(120)
         for event in pygame.event.get():
             mouse_pos = pygame.mouse.get_pos()
 
@@ -137,7 +134,7 @@ class Board(object):
         ########Initialization###########
         self.music = Music(self)
         self.power = Items(self)
-        self.setting = Settings(terminate)
+        self.setting = Settings(terminate, self)
         self.player = Player(self, "Player1")
         self.intersections = []
         self.inky = Enemy(self, self.player, (178, 225, 255), 'L', False, "inky")
@@ -150,16 +147,19 @@ class Board(object):
     def play_event(self):
         self.clock.tick(120)
         keys = pygame.key.get_pressed()
-        if self.player.player_lives == 0:
-            self.terminate = True
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (self.terminate is True):
                 self.terminate = True
-            if event.type == pygame.KEYDOWN:
-                if event.key == K_ESCAPE:
-                    self.terminate = True
         if keys[K_f]:
             self.power.activate_power_up()
+
+        for enemy in self.enemy:
+            if self.difficulty == 0:
+                enemy.move_difficulty = 5
+            elif self.difficulty == 1:
+                enemy.move_difficulty = 3
+            elif self.difficulty == 2:
+                enemy.move_difficulty = 2
 
         self.player_collision()
 
@@ -193,6 +193,45 @@ class Board(object):
         self.enemy_moves()
         self.check_enemy_location()
 
+    def back_menu(self):
+        keys = pygame.key.get_pressed()
+        if self.player.player_lives == 0:
+            self.check_score()
+            self.state = "Menu"
+            return self.state
+            #self.terminate = True
+        if keys[K_ESCAPE]:
+            self.check_score()
+            self.state = "Menu"
+            return self.state
+            #self.terminate = True
+
+    def game_reset(self):
+        self.spawn_count = 0
+        self.power_count = 0
+        self.x_coord = 0
+        self.y_coord = 0
+        self.direction = " "
+        self.state = "Single"
+        self.walls = []
+        self.walls_pos = []
+        self.free_cells = []
+        self.free_pos = []
+        self.enemy_spawn = []
+        self.dots = []
+
+    def check_score(self):
+        current_score = str(self.player.score)
+        with open('highscore.txt', 'r') as high_score:
+            text_high_score = high_score.readline()
+        int_high_score = int(text_high_score)
+        if self.player.score > int_high_score:
+            text_high_score = text_high_score.replace(text_high_score, current_score)
+            high_score.close()
+            with open('highscore.txt', 'w') as high_score:
+                high_score.write(text_high_score)
+                high_score.close()
+
     def check_enemy_location(self):
         for enemy in self.enemy:
             for other_enemy in self.enemy:
@@ -213,7 +252,6 @@ class Board(object):
         pygame.time.delay(120)
 
         for enemy in self.enemy:
-            enemy.enemy_difficulty()
             enemy.change_matrix()
             if enemy.pos in self.intersections:
                 enemy.last_intersection.append(enemy.pos)
@@ -416,13 +454,17 @@ class Board(object):
                     enemy.moves()
                     break
 
-    def load(self):
+    def load(self, difficulty):
         self.background = pygame.image.load("Maze.png")
         self.background = pygame.transform.smoothscale(self.background, (screen_width, screen_height))
         self.window.blit(self.background, (0, 0))
         self.cells()
         self.power.spawn()
+        self.difficulty = difficulty
         pygame.display.update()
+
+
+#-----------------------------------------------Multi_Player_State-----------------------------------------------#
 
 
 class MultiBoard(Board):
@@ -433,23 +475,44 @@ class MultiBoard(Board):
         self.tile_list = []
         self.tile_counter = 1
 
+    def multi_reset(self):
+        self.winner = " "
+        self.tile_list = []
+        self.tile_counter = 1
+        self.spawn_count = 0
+        self.power_count = 0
+        self.x_coord = 0
+        self.y_coord = 0
+        self.direction = " "
+        self.state = "Single"
+        self.walls = []
+        self.walls_pos = []
+        self.free_cells = []
+        self.free_pos = []
+        self.dots = []
+
     def two_play_event(self):
         self.clock.tick(120)
         pygame.time.delay(120)
         keys = pygame.key.get_pressed()
-        if self.player.player_lives == 0:
-            self.terminate = True
-        if self.player_two.player_lives == 0:
-            self.terminate = True
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (self.terminate is True):
                 self.terminate = True
-            if event.type == pygame.KEYDOWN:
-                if event.key == K_ESCAPE:
-                    self.terminate = True
         self.check_winner()
         self.player_collision()
         self.two_player_collision()
+
+    def multi_back_menu(self):
+        keys = pygame.key.get_pressed()
+        if self.player.player_lives == 0:
+            self.state = "Menu"
+            return self.state
+        if self.player_two.player_lives == 0:
+            self.state = "Menu"
+            return self.state
+        if keys[K_ESCAPE]:
+            self.state = "Menu"
+            return self.state
 
     def check_winner(self):
         for player in self.players:
@@ -557,14 +620,18 @@ class MultiBoard(Board):
         pygame.display.update()
 
 
+#-----------------------------------------------Settings_State-----------------------------------------------#
+
+
 class Settings:
-    def __init__(self, terminate):
+    def __init__(self, terminate, board):
         self.terminate = terminate
         self.window = window
+        self.board = board
         self.state = "Settings"
         self.difficulty_count = 0
         self.clock = pygame.time.Clock()
-        self.button_list = [(155, 152), (155, 512), (155, 632)]
+        self.button_list = [(155, 152), (155, 272), (155, 392), (155, 512), (155, 632)]
 
     def settings_events(self):
         self.clock.tick(60)
@@ -575,7 +642,8 @@ class Settings:
                 self.terminate = True
             if event.type == pygame.KEYDOWN:
                 if event.key == K_ESCAPE:
-                    self.terminate = True
+                    self.state = "Menu"
+                    return self.state
             if event.type == pygame.MOUSEMOTION:
                 if self.settings_button_collision(mouse_pos):
                     pygame.display.update()
@@ -584,6 +652,17 @@ class Settings:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.settings_button_collision(mouse_pos) and self.button_count == 0:
                     self.select_difficulty()
+                elif self.settings_button_collision(mouse_pos) and self.button_count == 1:
+                    self.show_highscore()
+                elif self.settings_button_collision(mouse_pos) and self.button_count == 2:
+                    self.show_help()
+                elif self.settings_button_collision(mouse_pos) and self.button_count == 3:
+                    if self.board.music.volume != 0:
+                        self.board.music.volume = 0
+                        self.display_music()
+                    else:
+                        self.board.music.volume = 0.1
+                        self.display_music()
 
     def select_difficulty(self):
         if self.difficulty_count == 0:
@@ -604,6 +683,44 @@ class Settings:
         pygame.display.update()
         pygame.time.delay(210)
 
+    def display_music(self):
+        button_font = pygame.font.Font(None, 33)
+        if self.board.music.volume != 0:
+            button_surf = button_font.render("Music On", 1, (255, 0, 0))
+        else:
+            button_surf = button_font.render("Music Off", 1, (255, 0, 0))
+        button_pos = [13 * 45, 1 * 24]
+        self.window.blit(button_surf, button_pos)
+        pygame.display.update()
+        pygame.time.delay(210)
+
+    def show_highscore(self):
+        high_score_file = open('highscore.txt', 'r')
+        high_score = high_score_file.readline()
+        high_score_font = pygame.font.Font(None, 66)
+        high_score_surf = high_score_font.render(high_score, 1, (255, 0, 0))
+        high_score_pos = [13 * 45, 1 * 24]
+        self.window.blit(high_score_surf, high_score_pos)
+        pygame.display.update()
+        pygame.time.delay(210)
+
+        high_score_file.close()
+
+    def show_help(self):
+        help_file = open('help.txt', 'r')
+        help_list = help_file.readlines()
+        height = 3
+        for line in help_list:
+            help_font = pygame.font.Font(None, 66)
+            help_surf = help_font.render(line, 1, (255, 0, 0))
+            help_pos = [13 * 45, height * 24]
+            self.window.blit(help_surf, help_pos)
+            height += 2
+            pygame.display.update()
+            pygame.time.delay(840)
+
+        help_file.close()
+
     def settings_button_collision(self, mouse_pos):
         self.button_count = -1
         for pos in self.button_list:
@@ -618,7 +735,7 @@ class Settings:
 
         for button in self.button_list:
             pygame.draw.rect(self.window, (0, 0, 255), (button[0], button[1], 200, 100), 0)
-        display_list = ["Difficulty", " ", " ", "Music", "Exit"]
+        display_list = ["Difficulty", "High Score", "Help", "Music", "Exit To Menu"]
         height = 8
         for display in display_list:
             button_font = pygame.font.Font(None, 33)

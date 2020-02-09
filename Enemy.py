@@ -32,13 +32,13 @@ class Enemy:
     def changeLocation(self, direction):
         self.direction = direction
 
-    def enemy_difficulty(self):
-        if self.board.setting.difficulty_count == 0:
-            self.move_difficulty = 5
-        elif self.board.setting.difficulty_count == 1:
-            self.move_difficulty = 3
-        elif self.board.setting.difficulty_count == 2:
-            self.move_difficulty = 2
+    def enemy_reset(self):
+        self.spawned = False
+        self.x = 607
+        self.y = 324
+        self.pos = (self.x, self.y)
+        self.move_counter = 2
+        self.move_available = True
 
     def moves(self):
         cost_function = round(self.move_difficulty/math.log10(self.player.cost_speed))
