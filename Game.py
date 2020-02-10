@@ -9,6 +9,14 @@ from Music import *
 import time
 import random
 
+"""Pygame.mixer is used to initialise the audio for my game. 44100 is the frequency, the size is 16, 2 is amount of 
+channels (multiple channels allow different sounds to be paused at once, rather than having to pause all at once), and
+4096 is the buffer size"""
+
+"""Pygame.init is used to initialize pygame and the pygame window. The caption is also set here, alongside the
+resolution (1260 x 744). The window is then initialized, which automatically puts the game in Fullscreen. Users will be
+able to exit out of Fullscreen"""
+
 pygame.mixer.pre_init(44100, 16, 2, 4096)
 pygame.init()
 pygame.display.set_caption("Pacman")
@@ -19,6 +27,14 @@ window = pygame.display.set_mode((screen_width, screen_height), FULLSCREEN)
 
 #-----------------------------------------------Menu_State-----------------------------------------------#
 
+""" This class is the Menu Class. This class is for players to navigate to different parts of the game (classes).
+The Menu Class detects mouse clicking and positioning, then depending on which button is clicked, the game will change
+state and run the game loop for that state."""
+
+"""The attributes for class Menu indicate the game state, window display for the background image, clock tick which
+calculates the frames per second, a self.terminate attribute which is set to false unless the user exits the main menu,
+and a button list which holds the top left corner of each button so pygame can draw the rectangle shape"""
+
 
 class Menu(object):
     def __init__(self, terminate):
@@ -28,11 +44,20 @@ class Menu(object):
         self.clock = pygame.time.Clock()
         self.button_list = [(155, 152), (155, 272), (155, 392), (155, 512), (155, 632)]
 
-    def menu_event(self):
-        self.clock.tick(120)
-        for event in pygame.event.get():
-            mouse_pos = pygame.mouse.get_pos()
+    """The function menu_event is the first part of the game loop when the game state is in Menu. The function handles
+        all events on the menu"""
 
+    def menu_event(self):
+        """self.clock.tick represents the frames per second the game is ticking at"""
+        self.clock.tick(120)
+        """This is the event loop"""
+        for event in pygame.event.get():
+            """mouse_pos gets the exact position coordinates of the mouse and represents the coordinates as a tuple."""
+            mouse_pos = pygame.mouse.get_pos()
+            """This if-else statement senses the mouse movement and if it collides with any buttons. This if statement
+            will always be executed as long as the mouse is moving. In this nested if statement, it either calls the
+            draw button function which just re-draws the buttons to the screen, or if the mouse position is within the
+            boundaries of the rectangular button, the second if statement will be executed."""
             if event.type == pygame.MOUSEMOTION:
                 if self.button_collisions(mouse_pos):
                     self.hover()
@@ -40,6 +65,10 @@ class Menu(object):
                     pygame.display.update()
                 else:
                     self.draw_buttons()
+
+            """Depend on which button the user clicks, it will change the state of the game, and therefore change the
+            game loop. The last if statement in the nested-if statement will terminate the game if the user clicks (with
+            the left mouse button) the quit button."""
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.button_collisions(mouse_pos) and self.button_count == 0:
@@ -54,12 +83,19 @@ class Menu(object):
                 if self.button_collisions(mouse_pos) and self.button_count == 4:
                     self.terminate = True
 
+            """If the user is not in fullscreen and clicks the x button on the window, the code will terminate"""
+
             if event.type == pygame.QUIT or (self.terminate is True):
                 self.terminate = True
+
+            """if the user presses the Escape button in the main menu, the game will terminate"""
 
             if event.type == pygame.KEYDOWN:
                 if event.key == K_ESCAPE:
                     self.terminate = True
+
+    """This function is checks if the position of the mouse is within the boundaries of a button. If so, it will return
+    true to the main event loop where more functions are further called"""
 
     def button_collisions(self, mouse_pos):
         self.button_count = -1
@@ -69,11 +105,17 @@ class Menu(object):
                 if (mouse_pos[1] > pos[1]) and (mouse_pos[1] < (pos[1] + 100)):
                     return True
 
+    """Function is here just in case other objects/things need to be drawn to the menu (for future development)"""
+
     def menu_draw(self):
         None
 
+    """menu_update, updates the screen display for the user (120 frames per second)"""
+
     def menu_update(self):
         pygame.display.update()
+
+    """This function is always called on the menu. It draws the text onto the buttons."""
 
     def button_text(self):
         display_list = ["Single-player", "Local-Multiplayer", "Leaderboard", "Settings", "Quit"]
@@ -85,6 +127,9 @@ class Menu(object):
             height += 5
             self.window.blit(button_surf, button_pos)
 
+    """This function is only called if the mouse position is not on the button. This means the button colour will be
+    gold/yellow"""
+
     def draw_buttons(self):
         y = 154
         for x in range(0, 5):
@@ -93,10 +138,17 @@ class Menu(object):
             y += 120
         self.button_text()
 
+    """This function is only called if the mouse position is on the button. This means the button colour will be
+        turned to a darker gold/yellow. This is to indicate to the user that they are hovering over the button"""
+
     def hover(self):
         for index, pos in enumerate(self.button_list):
             if self.button_count == index:
                 pygame.draw.rect(self.window, (178, 143, 0), (pos[0], pos[1], 200, 100), 0)
+
+    """This function is called only once, before the game-loop. The function loads the background, scales it to the
+    users screen and blits it to the screen so it does not change unless the game state changes. The buttons are also
+    drawn and the screen is updated using pygame.display.update()"""
 
     def load(self):
         self.background = pygame.image.load("menuscreen.jpg")
@@ -106,6 +158,36 @@ class Menu(object):
         pygame.display.update()
 
 #-----------------------------------------------Playing_State-----------------------------------------------#
+
+
+"""This is the Board class for single-player. The attributes in this class all contribute to how the board and 
+functionality of the game work. This class is where we get and set attributes from other classes. All board events, 
+drawings to the screen, and updates occur"""
+
+"""This board consists of some key attributes. 
+Self.Maze stores the 'list of lists' which is a 2D matrix of my pacman maze. 
+Self.window stores the display criteria. 
+Self.terminate is a bool, which when turned to True, exits out of the game. 
+The attributes, spawn_count, power_count, x_coord and y_coord are just used as counters for certain board functions. 
+Self.direction specifies player direction (can be, L, R, U or D). Self.clock also stores the frames/ticks per second.
+The list walls, stores the coordinates of the walls in terms of pixels, as tuples in a list(x, y). The list 
+walls_pos stores the coordinates of the walls in terms of vectors, as tuples in a list. The list free_cells and
+free_pos follow the same pattern as wall lists, but instead store the free cells/spaces rather than the walls.
+The attributes self.cell_width and self.cell_height, store the width and height of a cell respectively.
+The attributes self.offset_width and self.offset_height, store the width and height to get to the centre of a free cell.
+Attribute self.base_time stores the spawn timer for the enemies (ghosts) to come out.
+Attribute self.intersections, stores all the intersection points on the maze."""
+
+"""We initialized several objects from other classes. 
+I initialized the player object which holds the attributes of the user such as score and lives, etc...
+I initialized the music object which stores all the sounds of the game as separate methods.
+I initialized the power object which stores the attributes and methods for all the power-ups in the game.
+I initialized the setting object which stores all the methods and attribute for when the game state is at settings and
+the settings game loop is running.
+I initialized all four ghosts as enemy objects (inky, pinky, blinky, clyde). Besides the board and player object being
+passed as an argument, the colour, initial direction, 'if spawned', and name are all passed as arguments.
+All objects have the board object passed to them to allow them to be manipulate the board from their class.
+The list players and enemy, store all the player and enemy objects in a list respectively."""
 
 
 class Board(object):
