@@ -6,6 +6,7 @@ class Player(object):
     def __init__(self, board, name):
         self.board = board
         self.name = name
+        self.direction = " "
         self.power = "empty"
         self.immune = False
         self.immunity_count = 1

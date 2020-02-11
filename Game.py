@@ -169,7 +169,8 @@ Self.Maze stores the 'list of lists' which is a 2D matrix of my pacman maze.
 Self.window stores the display criteria. 
 Self.terminate is a bool, which when turned to True, exits out of the game. 
 The attributes, spawn_count, power_count, x_coord and y_coord are just used as counters for certain board functions. 
-Self.direction specifies player direction (can be, L, R, U or D). Self.clock also stores the frames/ticks per second.
+They store int values.
+Self.clock also stores the frames/ticks per second.
 The list walls, stores the coordinates of the walls in terms of pixels, as tuples in a list(x, y). The list 
 walls_pos stores the coordinates of the walls in terms of vectors, as tuples in a list. The list free_cells and
 free_pos follow the same pattern as wall lists, but instead store the free cells/spaces rather than the walls.
@@ -200,7 +201,6 @@ class Board(object):
         self.power_count = 0
         self.x_coord = 0
         self.y_coord = 0
-        self.direction = " "
         self.state = "Single"
         self.walls = []
         self.walls_pos = []
@@ -226,14 +226,27 @@ class Board(object):
         self.players = [self.player]
         self.enemy = [self.inky, self.pinky, self.blinky, self.clyde]
 
+    """This function handles all the boards events. Some events are just single-player and some are both single-player
+    and multi-player"""
+
     def play_event(self):
+        """self.clock.tick represents the frames per second the game is ticking at"""
         self.clock.tick(120)
+        """The variable keys is used to store any buttons pressed on the keyboard (pygame.key.get_pressed is an in-built
+        pygame function"""
         keys = pygame.key.get_pressed()
+        """This for loop detects if I have quit the game by pressing x on the window. If so, the game will terminate.
+        self.terminate is of bool type."""
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (self.terminate is True):
                 self.terminate = True
+        """If the user presses 'f' or 'F' on their keyboard the power-up of the user will activate, if the user is
+        carrying one"""
         if keys[K_f]:
             self.power.activate_power_up()
+
+        """Depending on the difficulty selection in the settings, the game will change difficulty. The difficulty change
+        changes the logarithmic function I have implemented, which is the cost function."""
 
         for enemy in self.enemy:
             if self.difficulty == 0:
@@ -243,7 +256,14 @@ class Board(object):
             elif self.difficulty == 2:
                 enemy.move_difficulty = 2
 
+        """self.player_collision() is an event that detects enemy movement and checks if the movement being made will
+        collide with any walls/non-free-cells"""
+
         self.player_collision()
+
+    """This function updates the board every game loop by calling other functions. It updates player and enemy 
+    locations. It checks the spawn timer for the enemies and if the player has died, which then makes the player immune 
+    for a specific amount of time. In addition, it checks for power-ups and items on the board"""
 
     def play_update(self):
         self.player.update()
@@ -256,6 +276,10 @@ class Board(object):
         self.pinky.update()
         self.clyde.update()
         pygame.display.update()
+
+    """This function draws onto the board every game loop by calling other functions. It draws the dots, power_ups,
+    player(s) amd enemies. In addition it checks for death, which re-draws the user onto the spawn location. There is
+    also a timer implemented for when enemies are in the spawn location."""
 
     def play_draw(self):
         self.window.fill((0, 0, 0))
@@ -271,9 +295,16 @@ class Board(object):
                     enemy.spawned = True
                     enemy.y = 276
                     break
+        """These three functions check for enemy location to make sure they do not overlap. Also they check for enemy
+        collision and then move the enemies bases on certain/specific criteria, depending what enemy is being moved."""
         self.check_enemy_location()
         self.enemy_moves()
         self.check_enemy_location()
+
+    """This function is used for when a player loses all their lives, or presses the escape button. They will then
+    return to the game menu. This is why the state changes back to menu. The function self.check_score() is also called.
+    This function checks if the current score is greater than the current high score, if so, the current score becomes
+    the new high score."""
 
     def back_menu(self):
         keys = pygame.key.get_pressed()
@@ -288,12 +319,14 @@ class Board(object):
             return self.state
             #self.terminate = True
 
+    """When the player chooses to start a new game, all board attributes will be reset to their initial values"""
+
     def game_reset(self):
         self.spawn_count = 0
         self.power_count = 0
         self.x_coord = 0
         self.y_coord = 0
-        self.direction = " "
+        self.player.direction = " "
         self.state = "Single"
         self.walls = []
         self.walls_pos = []
@@ -302,14 +335,26 @@ class Board(object):
         self.enemy_spawn = []
         self.dots = []
 
+    """In this function i demonstrate opening, reading and overwriting/writing a file. The file 'highscore.txt' stores
+    a numerical value as a string in the file. This function checks if the current in-game score is higher than the
+    score stored in the file. If so, the score will replace the score in the file. This function is only called when the
+    user exits the single-player game to the main menu."""
+
     def check_score(self):
+        """current score stores the string value of the current game score, when the game has ended"""
         current_score = str(self.player.score)
+        """This opens the file in read only and stores the file as the variable high_score. text_high_score then
+        interprets the first line of the text, which is the numerical string, and stores it."""
         with open('highscore.txt', 'r') as high_score:
             text_high_score = high_score.readline()
+        """converts numerical string to an integer and stores it"""
         int_high_score = int(text_high_score)
+        """replaces current high score with a new high score, if the players last game exceeded it."""
         if self.player.score > int_high_score:
             text_high_score = text_high_score.replace(text_high_score, current_score)
+            """Here i demonstrate closing a file"""
             high_score.close()
+            """Writes the new high score in the file, after replacing it"""
             with open('highscore.txt', 'w') as high_score:
                 high_score.write(text_high_score)
                 high_score.close()
@@ -379,11 +424,11 @@ class Board(object):
 
             try:
                 if (self.player.power == "laser") and (self.player.laser is True) and (enemy.spawned is True):
-                    if (self.direction == "L") or (self.direction == "R"):
+                    if (self.player.direction == "L") or (self.player.direction == "R"):
                         if (self.power.start_position[0] >= enemy.x >= self.power.end_position[0]) or (self.power.start_position[0] <= enemy.x <= self.power.end_position[0]):
                             if enemy.y == self.player.y:
                                 self.ghost_death(enemy)
-                    if (self.direction == "D") or (self.direction == "U"):
+                    if (self.player.direction == "D") or (self.player.direction == "U"):
                         if (self.power.start_position[1] >= enemy.y >= self.power.end_position[1]) or (self.power.start_position[1] <= enemy.y <= self.power.end_position[1]):
                             if enemy.x == self.player.x:
                                 self.ghost_death(enemy)
@@ -493,25 +538,25 @@ class Board(object):
             for tup in self.free_cells:
                 if (tup[0] == self.player.x - self.cell_width) and (tup[1] == self.player.y):
                     self.player.movement(-self.cell_width, 0)
-                    self.direction = "L"
+                    self.player.direction = "L"
                     return None
         if keys[pygame.K_RIGHT]:
             for tup in self.free_cells:
                 if (tup[0] == self.player.x + self.cell_width) and (tup[1] == self.player.y):
                     self.player.movement(self.cell_width, 0)
-                    self.direction = "R"
+                    self.player.direction = "R"
                     return None
         if keys[pygame.K_UP]:
             for tup in self.free_cells:
                 if (tup[0] == self.player.x) and (tup[1] == self.player.y - self.cell_height):
                     self.player.movement(0, -self.cell_height)
-                    self.direction = "U"
+                    self.player.direction = "U"
                     return None
         if keys[pygame.K_DOWN]:
             for tup in self.free_cells:
                 if (tup[0] == self.player.x) and (tup[1] == self.player.y + self.cell_height):
                     self.player.movement(0, self.cell_height)
-                    self.direction = "D"
+                    self.player.direction = "D"
                     return None
 
     def enemy_collision(self, direction, enemy):
@@ -565,7 +610,7 @@ class MultiBoard(Board):
         self.power_count = 0
         self.x_coord = 0
         self.y_coord = 0
-        self.direction = " "
+        self.player.direction = " "
         self.state = "Single"
         self.walls = []
         self.walls_pos = []
@@ -638,25 +683,25 @@ class MultiBoard(Board):
             for tup in self.free_cells:
                 if (tup[0] == self.player_two.x - self.cell_width) and (tup[1] == self.player_two.y):
                     self.player_two.movement(-self.cell_width, 0)
-                    self.direction = "L"
+                    self.player_two.direction = "L"
                     return None
         if keys[K_d]:
             for tup in self.free_cells:
                 if (tup[0] == self.player_two.x + self.cell_width) and (tup[1] == self.player_two.y):
                     self.player_two.movement(self.cell_width, 0)
-                    self.direction = "R"
+                    self.player_two.direction = "R"
                     return None
         if keys[K_w]:
             for tup in self.free_cells:
                 if (tup[0] == self.player_two.x) and (tup[1] == self.player_two.y - self.cell_height):
                     self.player_two.movement(0, -self.cell_height)
-                    self.direction = "U"
+                    self.player_two.direction = "U"
                     return None
         if keys[K_s]:
             for tup in self.free_cells:
                 if (tup[0] == self.player_two.x) and (tup[1] == self.player_two.y + self.cell_height):
                     self.player_two.movement(0, self.cell_height)
-                    self.direction = "D"
+                    self.player_two.direction = "D"
                     return None
 
     def multi_player_map_spawn(self):
