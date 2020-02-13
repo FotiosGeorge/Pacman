@@ -1,2 +1,4 @@
 Use arrow keys to move
 Press F to activate power-up
+Multiplayer: Player 1 is red
+and Player 2 is blue

@@ -8,6 +8,7 @@ from Powerup import *
 from Music import *
 import time
 import random
+from random import shuffle
 
 """Pygame.mixer is used to initialise the audio for my game. 44100 is the frequency, the size is 16, 2 is amount of 
 channels (multiple channels allow different sounds to be paused at once, rather than having to pause all at once), and
@@ -82,11 +83,13 @@ class Menu(object):
                     return self.state
                 if self.button_collisions(mouse_pos) and self.button_count == 4:
                     self.terminate = True
+                    break
 
             """If the user is not in fullscreen and clicks the x button on the window, the code will terminate"""
 
             if event.type == pygame.QUIT or (self.terminate is True):
                 self.terminate = True
+                break
 
             """if the user presses the Escape button in the main menu, the game will terminate"""
 
@@ -240,6 +243,7 @@ class Board(object):
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (self.terminate is True):
                 self.terminate = True
+                break
         """If the user presses 'f' or 'F' on their keyboard the power-up of the user will activate, if the user is
         carrying one"""
         if keys[K_f]:
@@ -310,6 +314,7 @@ class Board(object):
         keys = pygame.key.get_pressed()
         if self.player.player_lives == 0:
             self.check_score()
+            self.game_over("GAME_OVER")
             self.state = "Menu"
             return self.state
             #self.terminate = True
@@ -359,89 +364,152 @@ class Board(object):
                 high_score.write(text_high_score)
                 high_score.close()
 
+    """This function checks if there are other enemies in a connected free cell next to the current enemy. If there is
+    an enemy in the adjacent free cell, the current enemy will move in the opposite direction. This prevents enemies
+    overlapping in the same cell."""
+
     def check_enemy_location(self):
+        """nested for loop is used to test every enemy's position against all other enemies position"""
         for enemy in self.enemy:
             for other_enemy in self.enemy:
+                """if enemy is to the right, move left"""
                 if (enemy.pos[0] + 45 == other_enemy.pos[0]) and (enemy.pos[1] == other_enemy.pos[1]):
                     enemy.direction = "L"
+                    """checks for enemy collision with walls"""
                     self.enemy_collision(enemy.direction, enemy)
+                """if enemy is to the left, move right"""
                 if (enemy.pos[0] - 45 == other_enemy.pos[0]) and (enemy.pos[1] == other_enemy.pos[1]):
                     enemy.direction = "R"
+                    """checks for enemy collision with walls"""
                     self.enemy_collision(enemy.direction, enemy)
+                """if enemy is below, move up"""
                 if (enemy.pos[1] + 24 == other_enemy.pos[1]) and (enemy.pos[0] == other_enemy.pos[0]):
                     enemy.direction = "U"
+                    """checks for enemy collision with walls"""
                     self.enemy_collision(enemy.direction, enemy)
+                """if enemy is above, move down"""
                 if (enemy.pos[1] - 24 == other_enemy.pos[1]) and (enemy.pos[0] == other_enemy.pos[0]):
                     enemy.direction = "D"
+                    """checks for enemy collision with walls"""
                     self.enemy_collision(enemy.direction, enemy)
 
+    """This function contains all the different types of movements each ghost will make. Inky will use Dijkstra with a,
+     dynamic matrix that changes every game loop to try trap the player. Pinky will use breadth-first search. Blinky
+     will use random movement but Blinky can track Pacman if he sees him in his line of sight, by using the line of 
+     sight algorithm. Clyde will just move intersection to intersection, but will not be able to track Pacman."""
+
     def enemy_moves(self):
+        """I put a time delay, otherwise the game speed would be too quick, an in face unplayable. The value 120 is the
+        time in milliseconds. So there is a delay of 120 milliseconds per game loop."""
         pygame.time.delay(120)
 
         for enemy in self.enemy:
+            """for each enemy, the function change_matrix() is called. This function gets the previous intersection of
+            every enemy, and adjusts Inky's adjacency matrix accordingly"""
+
             enemy.change_matrix()
+            """This if statement check if the enemy position has reached an intersection. If so, a tuple is appended to 
+            a list. The reason we need the enemy's last intersection, is to see where the path for the searching
+            algorithms will start for Inky and Pinky, and where the next possible intersection can be for Clyde. Also
+            the line of sight algorithm for Blinky, Inky and Pinky. In addition, we need the last intersection of each 
+            enemy to be able to change the adjacency matrix for Inky."""
+
             if enemy.pos in self.intersections:
                 enemy.last_intersection.append(enemy.pos)
+            """When the enemies spawn and the player spawns, they have not yet touched an intersection, so all four 
+            algorithm's will not be able to work. Therefore the enemies will move randomly until they 
+            touch one and the player touches one."""
+            """If the player uses the invisibility potion, all the ghosts will have to move randomly"""
+
             if ((len(enemy.last_intersection) and len(self.player.last_intersection)) != 0) and (self.player.cloak is False):
+
+                """If the enemy in the for loop is inky, the dijkstra algorithm will take place"""
                 if enemy.name == "inky":
                     cords, cords_next = enemy.dijkstra()
                     self.searching_location(enemy, cords, cords_next)
 
+                """If the enemy in the for loop is blinky, blinky will move randomly but the line of sight algorithm 
+                will take place"""
                 if enemy.name == "blinky":
                     bool_value = self.in_line(enemy)
                     if bool_value is True:
                         enemy.changeLocation(random.choice(['L', 'U', 'D', 'R']))
                         self.enemy_collision(enemy.direction, enemy)
                     else:
-                        if enemy.pos[0] > self.player.pos[0]:
+                        if enemy.pos[0] > self.player.pos[0] and enemy.pos[1] == self.player.pos[1]:
                             enemy.changeLocation('L')
                             self.enemy_collision(enemy.direction, enemy)
-                        if enemy.pos[0] < self.player.pos[0]:
+                        if enemy.pos[0] < self.player.pos[0] and enemy.pos[1] == self.player.pos[1]:
                             enemy.changeLocation('R')
                             self.enemy_collision(enemy.direction, enemy)
-                        if enemy.pos[1] < self.player.pos[1]:
+                        if enemy.pos[1] < self.player.pos[1] and enemy.pos[0] == self.player.pos[0]:
                             enemy.changeLocation('D')
                             self.enemy_collision(enemy.direction, enemy)
-                        if enemy.pos[1] > self.player.pos[1]:
+                        if enemy.pos[1] > self.player.pos[1] and enemy.pos[0] == self.player.pos[0]:
                             enemy.changeLocation('U')
                             self.enemy_collision(enemy.direction, enemy)
 
+                """If the enemy in the for loop is pinky, the breadth-first search algorithm will take place"""
                 if enemy.name == "pinky":
                     cords, cords_next = enemy.breadth_first()
                     self.searching_location(enemy, cords, cords_next)
 
+                """If the enemy in the for loop is clyde, the intersection to intersection algorithm will take place."""
                 if enemy.name == "clyde":
                     if enemy.pos in self.intersections:
                         enemy.changeLocation(random.choice(['L', 'U', 'D', 'R']))
                         self.enemy_collision(enemy.direction, enemy)
                     else:
-                        enemy.changeLocation(random.choice(['L', 'U', 'D', 'R']))
                         self.enemy_collision(enemy.direction, enemy)
 
             else:
                 enemy.changeLocation(random.choice(['L', 'U', 'D', 'R']))
                 self.enemy_collision(enemy.direction, enemy)
 
+            """This try and except is used to detect whether an enemy is within the boundary of the laser, if the user
+            has activated it. The laser has a start position and an end position. If the enemy is between those two
+            coordinate positions or directly on top of the position, the enemy will die"""
+            """We have to put an except for IndexError because if the player has activated the laser and has run into
+            a wall, the starting and ending position will have an empty tuple."""
+
+            """self.player.power stores the users power up. self.player.laser stores a boolean to check if the player
+            has activated the power_up. enemy.spawned also stores a boolean operation, and is used as condition to
+            prevent a possibility of players killing ghosts before they have even spawned"""
             try:
                 if (self.player.power == "laser") and (self.player.laser is True) and (enemy.spawned is True):
                     if (self.player.direction == "L") or (self.player.direction == "R"):
                         if (self.power.start_position[0] >= enemy.x >= self.power.end_position[0]) or (self.power.start_position[0] <= enemy.x <= self.power.end_position[0]):
                             if enemy.y == self.player.y:
+                                """calls the ghost_death function to reset some of the ghosts attributes"""
                                 self.ghost_death(enemy)
                     if (self.player.direction == "D") or (self.player.direction == "U"):
                         if (self.power.start_position[1] >= enemy.y >= self.power.end_position[1]) or (self.power.start_position[1] <= enemy.y <= self.power.end_position[1]):
                             if enemy.x == self.player.x:
+                                """calls the ghost_death function to reset some of the ghosts attributes"""
                                 self.ghost_death(enemy)
             except IndexError:
                 return None
 
+    """This function is called when a ghost dies by a user. It resets attributes and plays the 'ghost death' music"""
+
     def ghost_death(self, enemy):
+        """Calls ghost death music"""
         self.music.enemy_death_music()
+        """Reset ghost spawn point. Spawn point is stored as a tuple which contains x and y integers (x, y)"""
         enemy.x = 607
         enemy.y = 324
+        """Sets the spawned attribute to false. This stops players killing enemies before spawning. In addition by
+        setting the boolean value to false, the if condition of the function self.check_timer() will pass, which starts a
+        timer for the enemy to spawn again. Once the timer is done, enemy.spawned turns to True."""
         enemy.spawned = False
 
+    """This function is called when the path from Dijkstra and Breadth-First Search is found, for Inky and Pinky
+    respectively. Once the path is found, the current intersection cords of the ghost and the next intersection cords,
+    alongside what ghost it is, are passed as arguments into the function.."""
     def searching_location(self, enemy, cords, cords_next):
+        """If the cords or cords_next are none, the else condition will be executed. The reason these may be none, is
+        because the enemy is very close to Pacman meaning that there are no further intersections to go to. In that
+        case the ghost goes straight towards Pacman, as there is no intersection between the enemy and Pacman."""
         if (cords or cords_next) is not None:
             if enemy.pos[0] > cords_next[0]:
                 enemy.changeLocation('L')
@@ -469,9 +537,14 @@ class Board(object):
                 enemy.changeLocation('U')
                 self.enemy_collision(enemy.direction, enemy)
 
+    """This is the spawn timer for the ghosts. Self.base_time is the initial time. Spawn time is current time.
+    Final time is the current time subtract the base time. We return a bool. True if final_time == 0, and false if it
+    does not. If true is returned, the enemy spawns in during the game loop. Self.spawn_count is used to delay the
+    spawn time (this may not be necessary to have the spawn timer working)."""
+
     def check_timer(self):
         spawn_time = time.time()
-        final_time = int(spawn_time - self.base_time) % 10
+        final_time = int(spawn_time - self.base_time) % 20
         self.spawn_count += 1
         if self.spawn_count % 5 == 0:
             return final_time == 0
@@ -537,26 +610,26 @@ class Board(object):
         if keys[pygame.K_LEFT]:
             for tup in self.free_cells:
                 if (tup[0] == self.player.x - self.cell_width) and (tup[1] == self.player.y):
-                    self.player.movement(-self.cell_width, 0)
                     self.player.direction = "L"
+                    self.player.movement(-self.cell_width, 0)
                     return None
         if keys[pygame.K_RIGHT]:
             for tup in self.free_cells:
                 if (tup[0] == self.player.x + self.cell_width) and (tup[1] == self.player.y):
-                    self.player.movement(self.cell_width, 0)
                     self.player.direction = "R"
+                    self.player.movement(self.cell_width, 0)
                     return None
         if keys[pygame.K_UP]:
             for tup in self.free_cells:
                 if (tup[0] == self.player.x) and (tup[1] == self.player.y - self.cell_height):
-                    self.player.movement(0, -self.cell_height)
                     self.player.direction = "U"
+                    self.player.movement(0, -self.cell_height)
                     return None
         if keys[pygame.K_DOWN]:
             for tup in self.free_cells:
                 if (tup[0] == self.player.x) and (tup[1] == self.player.y + self.cell_height):
-                    self.player.movement(0, self.cell_height)
                     self.player.direction = "D"
+                    self.player.movement(0, self.cell_height)
                     return None
 
     def enemy_collision(self, direction, enemy):
@@ -581,6 +654,19 @@ class Board(object):
                     enemy.moves()
                     break
 
+    def game_over(self, text):
+        expansion = 33
+        for value in range(0, 100):
+            self.window.fill((0, 0, 0))
+            button_font = pygame.font.Font(None, expansion)
+            button_surf = button_font.render(text, 1, (236, 0, 0))
+            button_pos = [8 * 45, 12 * 24]
+            self.window.blit(button_surf, button_pos)
+            expansion += 1
+            pygame.time.delay(10)
+            pygame.display.update()
+        pygame.time.delay(210)
+
     def load(self, difficulty):
         self.background = pygame.image.load("Maze.png")
         self.background = pygame.transform.smoothscale(self.background, (screen_width, screen_height))
@@ -598,14 +684,16 @@ class MultiBoard(Board):
     def __init__(self, terminate):
         super().__init__(terminate)
         self.player_two = Player(self, "Player2")
-        self.winner = " "
         self.tile_list = []
+        self.rock_tile_list = []
         self.tile_counter = 1
+        self.rock_tile_counter = 0
 
     def multi_reset(self):
-        self.winner = " "
         self.tile_list = []
+        self.rock_tile_list = []
         self.tile_counter = 1
+        self.rock_tile_counter = 0
         self.spawn_count = 0
         self.power_count = 0
         self.x_coord = 0
@@ -621,10 +709,10 @@ class MultiBoard(Board):
     def two_play_event(self):
         self.clock.tick(120)
         pygame.time.delay(120)
-        keys = pygame.key.get_pressed()
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (self.terminate is True):
                 self.terminate = True
+                break
         self.check_winner()
         self.player_collision()
         self.two_player_collision()
@@ -632,9 +720,11 @@ class MultiBoard(Board):
     def multi_back_menu(self):
         keys = pygame.key.get_pressed()
         if self.player.player_lives == 0:
+            self.game_over("Player2 Wins")
             self.state = "Menu"
             return self.state
         if self.player_two.player_lives == 0:
+            self.game_over("Player1 Wins")
             self.state = "Menu"
             return self.state
         if keys[K_ESCAPE]:
@@ -643,9 +733,11 @@ class MultiBoard(Board):
 
     def check_winner(self):
         for player in self.players:
-            if player.score >= 1000:
-                self.winner = player.name
-                break
+            if player.score >= 500:
+                winner = player.name + " Wins"
+                self.game_over(winner)
+                self.state = "Menu"
+                return self.state
 
     def multi_play_update(self):
         self.check_player_location()
@@ -682,51 +774,66 @@ class MultiBoard(Board):
         if keys[K_a]:
             for tup in self.free_cells:
                 if (tup[0] == self.player_two.x - self.cell_width) and (tup[1] == self.player_two.y):
-                    self.player_two.movement(-self.cell_width, 0)
                     self.player_two.direction = "L"
+                    self.player_two.movement(-self.cell_width, 0)
                     return None
         if keys[K_d]:
             for tup in self.free_cells:
                 if (tup[0] == self.player_two.x + self.cell_width) and (tup[1] == self.player_two.y):
-                    self.player_two.movement(self.cell_width, 0)
                     self.player_two.direction = "R"
+                    self.player_two.movement(self.cell_width, 0)
                     return None
         if keys[K_w]:
             for tup in self.free_cells:
                 if (tup[0] == self.player_two.x) and (tup[1] == self.player_two.y - self.cell_height):
-                    self.player_two.movement(0, -self.cell_height)
                     self.player_two.direction = "U"
+                    self.player_two.movement(0, -self.cell_height)
                     return None
         if keys[K_s]:
             for tup in self.free_cells:
                 if (tup[0] == self.player_two.x) and (tup[1] == self.player_two.y + self.cell_height):
-                    self.player_two.movement(0, self.cell_height)
                     self.player_two.direction = "D"
+                    self.player_two.movement(0, self.cell_height)
                     return None
 
     def multi_player_map_spawn(self):
-        if self.tile_counter % 30 == 0:
+        lava_to_rock_counter = 450
+        if self.tile_counter % 15 == 0:
             tile = random.choice(self.free_cells)
-            self.tile_list.append(tile)
-        if self.tile_counter % 900 == 0:
-            self.tile_list.clear()
-            self.cells()
+            if len(self.tile_list) < 30:
+                self.tile_list.append(tile)
+                shuffle(self.tile_list)
+            else:
+                lava_to_rock_counter = 200
+        if self.tile_counter % lava_to_rock_counter == 0:
+            self.lava_to_rock()
         self.tile_counter += 1
         for tile in self.tile_list:
             for player in self.players:
-                if (player.pos != tile) and (tile in self.free_cells):
+                if (player.pos != tile) and (tile in self.free_cells) and (tile not in self.rock_tile_list):
                     x_cord_one = tile[0] - self.offset_width
                     y_cord_one = tile[1] - self.offset_height
                     pygame.draw.rect(self.window, (255, 128, 0), (x_cord_one, y_cord_one, self.cell_width, self.cell_height), 0)
                     if (len(self.tile_list) != 0) and (tile in self.dots):
                         self.dots.remove(tile)
+        for tile in self.rock_tile_list:
+            x_cord_two = tile[0] - self.offset_width
+            y_cord_two = tile[1] - self.offset_height
+            pygame.draw.rect(self.window, (128, 128, 128), (x_cord_two, y_cord_two, self.cell_width, self.cell_height), 0)
+        pygame.display.update()
+
+    def lava_to_rock(self):
+        rock_tile = self.tile_list[self.rock_tile_counter]
+        if self.rock_tile_counter <= len(self.tile_list):
+            self.rock_tile_list.append(rock_tile)
+            self.rock_tile_counter += 1
         pygame.display.update()
 
     def check_player_location(self):
         for player in self.players:
             new_spawn = random.choice(self.free_cells)
             if new_spawn not in self.tile_list:
-                if (player.pos in self.tile_list) and (player.immune is False):
+                if (player.pos in self.tile_list) and (player.immune is False) and (player.pos not in self.rock_tile_list):
                     self.music.death_music()
                     player.player_lives -= 1
                     if player.score >= 100:
@@ -767,6 +874,7 @@ class Settings:
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (self.terminate is True):
                 self.terminate = True
+                break
             if event.type == pygame.KEYDOWN:
                 if event.key == K_ESCAPE:
                     self.state = "Menu"
@@ -790,6 +898,9 @@ class Settings:
                     else:
                         self.board.music.volume = 0.1
                         self.display_music()
+                elif self.settings_button_collision(mouse_pos) and self.button_count == 4:
+                    self.state = "Menu"
+                    return self.state
 
     def select_difficulty(self):
         if self.difficulty_count == 0:

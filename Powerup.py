@@ -96,7 +96,7 @@ class Items(object):
 
     def beam(self):
         if (self.board.player.power == "laser") and (self.board.player.laser is True):
-            direction = self.board.direction
+            direction = self.board.player.direction
             current_distance = 10000
             self.end_position = self.board.player.pos
             if direction == "L":
