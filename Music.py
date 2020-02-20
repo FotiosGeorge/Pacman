@@ -1,10 +1,19 @@
 import pygame
 
+"""This is the Music Class. It only has one attribute, which is volume. All the methods call different sound effects."""
+
 
 class Music(object):
-    def __init__(self, board):
-        self.board = board
+    def __init__(self):
         self.volume = 0.1
+
+    """pygame.mixer.music.load loads in the music file"""
+
+    """pygame.mixer.music.set_volume takes the attribute self.volume. This in-built pygame function sets the volume
+    for the current music playing."""
+
+    """pygame.mixer.music.play sets the amount of times the sound effect should be repeated. If the value is -1, the
+    sound will be replayed indefinitely."""
 
     def menu_music(self):
         pygame.mixer.music.load("pacman_beginning.wav")
