@@ -517,6 +517,7 @@ class Board(object):
         setting the boolean value to false, the if condition of the function self.check_timer() will pass, which starts a
         timer for the enemy to spawn again. Once the timer is done, enemy.spawned turns to True."""
         enemy.spawned = False
+        enemy.last_intersection.clear()
 
     """This function is called when the path from Dijkstra and Breadth-First Search is found, for Inky and Pinky
     respectively. Once the path is found, the current intersection cords of the ghost and the next intersection cords,
@@ -1026,6 +1027,8 @@ class MultiBoard(Board):
             x_cord_two = tile[0] - self.offset_width
             y_cord_two = tile[1] - self.offset_height
             pygame.draw.rect(self.window, (128, 128, 128), (x_cord_two, y_cord_two, self.cell_width, self.cell_height), 0)
+            if (len(self.rock_tile_list) != 0) and (tile in self.dots):
+                self.dots.remove(tile)
         pygame.display.update()
 
     """The variable rock_tile stores the coordinates of a lava. If amount of rock tiles is equal to the amount of

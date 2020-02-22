@@ -60,6 +60,9 @@ class Player(object):
                 self.board.player.y = 420
                 self.power = "empty"
                 self.immune = True
+                """If the user has any power ups activated, they get deactivated here."""
+                self.cloak = False
+                self.laser = False
                 break
         """The new amount of lives a player has (which will be 1 less than before) will get displayed."""
         self.lives_system()

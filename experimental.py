@@ -138,7 +138,7 @@ if __name__ == '__main__':
             multi_board.multi_play_draw()
             multi_board.multi_play_update()
             """If the user goes back to the main menu, the game state 'Menu' changes and the menu is loaded back in."""
-            if multi_board.multi_back_menu() == "Menu":
+            if multi_board.multi_back_menu() == "Menu" or multi_board.check_winner() == "Menu":
                 difficulty = setting.difficulty_count
                 state = "Menu"
                 load("Menu", difficulty)
