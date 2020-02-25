@@ -145,7 +145,7 @@ class Enemy:
 
         self.nearest_neighbour()
 
-        """Here I create the intial matrix where all the vertices are given initial values of infinity"""
+        """Here I create the initial matrix where all the vertices are given initial values of infinity"""
         index = 0
         for value in self.intersections:
             self.matrix_equivalent[value] = index
@@ -260,7 +260,7 @@ class Enemy:
 
     """This function makes a copy of the original matrix every time it is called. After it makes a copy, it adjusts the
     weights of the vertices of the matrix for the ghost/enemy Inky. This is based on the last intersection of the other 
-    three ghosts."""
+    three ghosts. This makes the adjacency matrix dynamic."""
 
     def change_matrix(self):
         self.matrix_copy = self.matrix[:]
