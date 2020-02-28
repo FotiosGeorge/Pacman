@@ -382,6 +382,7 @@ class Board(object):
     """This function checks if there are other enemies in a connected free cell next to the current enemy. If there is
     an enemy in the adjacent free cell, the current enemy will move in the opposite direction. This prevents enemies
     overlapping in the same cell."""
+    """This is the enemy detection algorithm."""
 
     def check_enemy_location(self):
         """nested for loop is used to test every enemy's position against all other enemies position"""
@@ -522,10 +523,12 @@ class Board(object):
     """This function is called when the path from Dijkstra and Breadth-First Search is found, for Inky and Pinky
     respectively. Once the path is found, the current intersection cords of the ghost and the next intersection cords,
     alongside what ghost it is, are passed as arguments into the function.."""
+    """This function is how Inky and Blinky move, after using Dijkstra or Breadth-First Search."""
     def searching_location(self, enemy, cords, cords_next):
         """If the cords or cords_next are none, the else condition will be executed. The reason these may be none, is
-        because the enemy is very close to Pacman meaning that there are no further intersections to go to. In that
-        case the ghost goes straight towards Pacman, as there is no intersection between the enemy and Pacman."""
+        because the enemy is very close to Pacman meaning that there are no further intersections to go to, which means
+        the line of sight algorithm will be used instead. So in that case the ghost goes straight towards Pacman, as
+        there is no intersection between the enemy and Pacman."""
         if (cords or cords_next) is not None:
             if enemy.pos[0] > cords_next[0]:
                 enemy.changeLocation('L')
